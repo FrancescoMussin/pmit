@@ -1,13 +1,20 @@
 use anyhow::{Context, Result};
 use std::env;
 
+/// Struct to hold the application configuration loaded from the .env file and environment variables.
 #[derive(Debug, Clone)]
 pub struct Config {
+    /// The base URL for the Polymarket Data API.
     pub polymarket_data_api_url: String,
+    /// The interval in seconds at which the application polls the API for new data.
     pub poll_interval_secs: u64,
+    /// The maximum number of recent trades to fetch globally across all markets.
     pub global_trades_limit: usize,
+    /// The threshold in USD for considering a trade as "large".
     pub large_trade_threshold: f64,
+    /// The number of seconds after which to warn about a stale feed.
     pub stale_feed_warn_secs: u64,
+    /// The number of consecutive polls after which to consider the feed stale.
     pub stale_feed_consecutive_polls: u32,
     pub sqlite_db_path: String,
 }
