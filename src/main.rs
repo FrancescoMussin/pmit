@@ -150,8 +150,8 @@ fn handle_trade(
 
     if should_print_trade {
         println!(
-            "🚨 TRADE -> {} [{}] | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2}) | Maker: {}",
-            bet_title, bet_outcome, trade.size, trade.price, total_value, trade.maker_address
+            "🚨 TRADE -> {} [{}] | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2})",
+            bet_title, bet_outcome, trade.size, trade.price, total_value
         );
     }
 
