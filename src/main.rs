@@ -14,10 +14,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{Duration, sleep};
 use trade_filter::TradeFilter;
 
+// we return a Result from main so we can use the `?` operator for easier error handling
 #[tokio::main]
 async fn main() -> Result<()> {
-    // 1. Load configuration
+    // 1. We load the configuration
     let config = Config::load()?;
+    // we also initialize our SQLite database and schema before starting the polling loop
     db::init(&config.sqlite_db_path)?;
     println!(
         "Loaded config! Polling Global Trades API every {} seconds (limit={})",
@@ -30,15 +32,17 @@ async fn main() -> Result<()> {
     );
     // 2. Set up our LRU (Least Recently Used) Caches
     // This cache limits memory usage by only remembering the 1,000 most recently queried addresses
+    // the value here is () because only membership in the cache matters, not the value itself
     let mut recent_users: LruCache<String, ()> = LruCache::new(NonZeroUsize::new(1000).unwrap());
 
     // We also need a cache to remember which trades we've already processed,
-    // so our 5-second polling loop doesn't double-count the same trade.
+    // so our 10-second polling loop doesn't double-count the same trade.
     let mut processed_trades: LruCache<String, ()> =
         LruCache::new(NonZeroUsize::new(5000).unwrap());
 
     // 3. Create a shared HTTP Client for the application
     let http_client = reqwest::Client::new();
+    // we can initialize the trade filter
     let trade_filter = TradeFilter::new();
 
     // 4. Create our polling interval
@@ -49,12 +53,16 @@ async fn main() -> Result<()> {
         "Starting global trade Watchdog... Polling every {}s",
         config.poll_interval_secs
     );
+    // this is just for keeping track of how many consecutive times we've seen a stale feed, so we can log that pattern if it emerges
     let mut stale_streak: u32 = 0;
+    // We start the polling loop, which will run indefinitely until the program is stopped
     loop {
+        // this blocks a new iteration of the loop until the configured interval has passed since the last tick
         poll_interval.tick().await;
         println!("--> Polling Data API for new trades...");
 
-        // Fetch the latest global trades across all of Polymarket
+        // Fetch the latest global trades across all of Polymarket.
+        // fetch_global_trades returns a future of a result so we .await it and also handle any errors that come back with a match statement
         match polymarket::fetch_global_trades(
             &http_client,
             &config.polymarket_data_api_url,
@@ -64,7 +72,8 @@ async fn main() -> Result<()> {
         {
             Ok(trades) => {
                 let mut new_trades_count = 0;
-
+                // we look at the newest trade's timestamp to see how fresh the feed is. If it's older than our configured threshold, we log a warning.
+                // If this happens for multiple consecutive polls, we log that pattern as well since it often indicates an issue with CDN caching.
                 if let Some(newest_trade_ts) = trades.iter().map(|t| t.timestamp).max() {
                     let now_ts = SystemTime::now()
                         .duration_since(UNIX_EPOCH)
@@ -111,6 +120,9 @@ async fn main() -> Result<()> {
                         }
 
                         // Fire off to our central processing logic
+                        // this prints out the trade to terminal if it passes the filter,
+                        // and also checks if we should profile the user behind the trade based on our configured threshold,
+                        // in which case this spawns a new asynchronous task to fetch their history and persist it to the database.
                         handle_trade(
                             &mut recent_users,
                             &trade_filter,
@@ -135,7 +147,10 @@ async fn main() -> Result<()> {
     }
 }
 
-/// Core application logic for processing a new trade
+/// This function processes each trade.
+/// First it prints out the trade details if it passes the trade_filter, then if the trade value is above our configured threshold,
+/// it checks if we've recently profiled this user. If not, it spawns a new asynchronous task to fetch their activity and persist
+/// it to the database, while also printing a preview of their profile to the console.
 fn handle_trade(
     recent_users: &mut LruCache<String, ()>,
     trade_filter: &TradeFilter,
@@ -148,9 +163,10 @@ fn handle_trade(
     let bet_outcome = trade.outcome.as_deref().unwrap_or("N/A");
     let should_print_trade = trade_filter.should_print_trade(&trade);
 
+    // we print all trades that pass the filter
     if should_print_trade {
         println!(
-            "🚨 TRADE -> {} [{}] | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2})",
+            "🚨 TRADE: {} [{}] | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2})",
             bet_title, bet_outcome, trade.size, trade.price, total_value
         );
     }
@@ -171,14 +187,18 @@ fn handle_trade(
                 );
             }
 
-            // Mark them as seen in the cache immediately so we don't spawn multiple tasks
+            // Mark them as seen in the cache before spawning a new task to fetch their profile,
+            // so we don't fire off multiple requests for the same user if they have multiple large trades in a short period.
             recent_users.put(trade.maker_address.clone(), ());
 
+            // we might need the client and the adress outside of this async block, so we clone them here to move into the new task
             let client_clone = client.clone();
             let address_clone = trade.maker_address.clone();
+            // we also clone the relevant config values since we can't move the whole config struct into the async block
             let api_url = config.polymarket_data_api_url.clone();
             let db_path = config.sqlite_db_path.clone();
 
+            // tokio magic
             tokio::spawn(async move {
                 match polymarket::fetch_user_activity(&client_clone, &api_url, &address_clone).await
                 {
@@ -192,8 +212,10 @@ fn handle_trade(
                             );
                         }
 
-                        // Log a snippet of their history
+                        // We get the activity object and convert it to a string,
                         let json_str = serde_json::to_string(&activity).unwrap_or_default();
+                        // then we preview the first 200 characters in the console log so we can get a
+                        // quick sense of the user's recent activity without overwhelming the terminal with a full JSON dump.
                         let preview: String = json_str.chars().take(200).collect();
                         println!(
                             "  -> Profile fetched for {}! Preview: {}...",
