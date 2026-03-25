@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use rusqlite::{Connection, params};
 use serde_json::Value;
+use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::polymarket::Trade;
@@ -97,7 +98,17 @@ pub fn insert_user_activity_snapshot(
 }
 
 fn open(db_path: &str) -> Result<Connection> {
-    Connection::open(db_path).with_context(|| format!("Failed to open SQLite DB at {}", db_path))
+    let conn = Connection::open(db_path)
+        .with_context(|| format!("Failed to open SQLite DB at {}", db_path))?;
+
+    conn.busy_timeout(Duration::from_secs(5))
+        .context("Failed to configure SQLite busy timeout")?;
+    conn.pragma_update(None, "journal_mode", "WAL")
+        .context("Failed to enable SQLite WAL journal mode")?;
+    conn.pragma_update(None, "synchronous", "NORMAL")
+        .context("Failed to configure SQLite synchronous mode")?;
+
+    Ok(conn)
 }
 
 fn now_ts() -> u64 {
