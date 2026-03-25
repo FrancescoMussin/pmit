@@ -74,9 +74,19 @@ fn handle_trade(
     trade: Trade,
 ) {
     let total_value = trade.size * trade.price;
+    let bet_title = trade.title.as_deref().unwrap_or("Unknown Market");
+    let bet_outcome = trade.outcome.as_deref().unwrap_or("N/A");
 
-    println!("🚨 TRADE -> Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2}) | Vol: {} | Maker: {}", 
-        trade.size, trade.price, total_value, trade.asset, trade.maker_address);
+    println!(
+        "🚨 TRADE -> {} [{}] | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2}) | Vol: {} | Maker: {}",
+        bet_title,
+        bet_outcome,
+        trade.size,
+        trade.price,
+        total_value,
+        trade.asset,
+        trade.maker_address
+    );
 
     // Only profile users if their trade value is >= our threshold
     if total_value >= config.large_trade_threshold {

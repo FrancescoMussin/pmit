@@ -9,6 +9,8 @@ pub struct Trade {
     pub maker_address: String,
     pub side: String,
     pub asset: String,
+    pub title: Option<String>,
+    pub outcome: Option<String>,
     pub size: f64,
     pub price: f64,
     pub timestamp: u64,
