@@ -8,6 +8,7 @@ use config::Config;
 use lru::LruCache;
 use polymarket::Trade;
 use std::num::NonZeroUsize;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{Duration, sleep};
 
 #[tokio::main]
@@ -18,7 +19,10 @@ async fn main() -> Result<()> {
         "Loaded config! Polling Global Trades API every {} seconds",
         config.poll_interval_secs
     );
-
+    println!(
+        "Staleness detector: warn_lag={}s, consecutive_polls={}",
+        config.stale_feed_warn_secs, config.stale_feed_consecutive_polls
+    );
     // 2. Set up our LRU (Least Recently Used) Caches
     // This cache limits memory usage by only remembering the 1,000 most recently queried addresses
     let mut recent_users: LruCache<String, ()> = LruCache::new(NonZeroUsize::new(1000).unwrap());
@@ -39,6 +43,7 @@ async fn main() -> Result<()> {
         "Starting global trade Watchdog... Polling every {}s",
         config.poll_interval_secs
     );
+    let mut stale_streak: u32 = 0;
     loop {
         poll_interval.tick().await;
         println!("--> Polling Data API for new trades...");
@@ -49,6 +54,37 @@ async fn main() -> Result<()> {
         {
             Ok(trades) => {
                 let mut new_trades_count = 0;
+
+                if let Some(newest_trade_ts) = trades.iter().map(|t| t.timestamp).max() {
+                    let now_ts = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs();
+                    let lag_secs = now_ts.saturating_sub(newest_trade_ts);
+
+                    if lag_secs >= config.stale_feed_warn_secs {
+                        stale_streak += 1;
+                        eprintln!(
+                            "[STALE FEED] newest trade is {}s old (threshold={}s, streak={})",
+                            lag_secs, config.stale_feed_warn_secs, stale_streak
+                        );
+
+                        if stale_streak >= config.stale_feed_consecutive_polls {
+                            eprintln!(
+                                "[STALE FEED] sustained staleness detected. This often indicates CDN/API cache windows."
+                            );
+                        }
+                    } else {
+                        if stale_streak > 0 {
+                            println!(
+                                "Feed freshness recovered after {} stale poll(s). Current lag={}s",
+                                stale_streak, lag_secs
+                            );
+                        }
+                        stale_streak = 0;
+                    }
+                }
+
                 // Since trades are usually returned newest-first, we process them in reverse
                 // so the console output reads in actual chronological order.
                 for trade in trades.into_iter().rev() {

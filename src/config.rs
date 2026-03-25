@@ -6,6 +6,8 @@ pub struct Config {
     pub polymarket_data_api_url: String,
     pub poll_interval_secs: u64,
     pub large_trade_threshold: f64,
+    pub stale_feed_warn_secs: u64,
+    pub stale_feed_consecutive_polls: u32,
 }
 
 impl Config {
@@ -27,10 +29,22 @@ impl Config {
             .parse()
             .context("LARGE_TRADE_THRESHOLD must be a valid number")?;
 
+        let stale_feed_warn_secs: u64 = env::var("STALE_FEED_WARN_SECS")
+            .unwrap_or_else(|_| "90".to_string())
+            .parse()
+            .context("STALE_FEED_WARN_SECS must be a valid number")?;
+
+        let stale_feed_consecutive_polls: u32 = env::var("STALE_FEED_CONSECUTIVE_POLLS")
+            .unwrap_or_else(|_| "3".to_string())
+            .parse()
+            .context("STALE_FEED_CONSECUTIVE_POLLS must be a valid number")?;
+
         Ok(Config {
             polymarket_data_api_url,
             poll_interval_secs,
             large_trade_threshold,
+            stale_feed_warn_secs,
+            stale_feed_consecutive_polls,
         })
     }
 }
