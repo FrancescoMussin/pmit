@@ -18,8 +18,8 @@ async fn main() -> Result<()> {
     let config = Config::load()?;
     db::init(&config.sqlite_db_path)?;
     println!(
-        "Loaded config! Polling Global Trades API every {} seconds",
-        config.poll_interval_secs
+        "Loaded config! Polling Global Trades API every {} seconds (limit={})",
+        config.poll_interval_secs, config.global_trades_limit
     );
     println!("SQLite storage initialized at {}", config.sqlite_db_path);
     println!(
@@ -51,9 +51,13 @@ async fn main() -> Result<()> {
         poll_interval.tick().await;
         println!("--> Polling Data API for new trades...");
 
-        // Fetch the last 100 global trades across all of Polymarket
-        match polymarket::fetch_global_trades(&http_client, &config.polymarket_data_api_url, 100)
-            .await
+        // Fetch the latest global trades across all of Polymarket
+        match polymarket::fetch_global_trades(
+            &http_client,
+            &config.polymarket_data_api_url,
+            config.global_trades_limit,
+        )
+        .await
         {
             Ok(trades) => {
                 let mut new_trades_count = 0;

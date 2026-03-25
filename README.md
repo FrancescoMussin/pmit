@@ -93,6 +93,7 @@ Configuration is handled via a `.env` file:
 ```env
 POLYMARKET_DATA_API_URL=https://data-api.polymarket.com
 POLL_INTERVAL_SECS=10
+GLOBAL_TRADES_LIMIT=1000
 LARGE_TRADE_THRESHOLD=1000.0
 SQLITE_DB_PATH=./pmit.db
 ```

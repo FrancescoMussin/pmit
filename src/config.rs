@@ -5,6 +5,7 @@ use std::env;
 pub struct Config {
     pub polymarket_data_api_url: String,
     pub poll_interval_secs: u64,
+    pub global_trades_limit: usize,
     pub large_trade_threshold: f64,
     pub stale_feed_warn_secs: u64,
     pub stale_feed_consecutive_polls: u32,
@@ -24,6 +25,11 @@ impl Config {
             .unwrap_or_else(|_| "10".to_string())
             .parse()
             .context("POLL_INTERVAL_SECS must be a valid number")?;
+
+        let global_trades_limit: usize = env::var("GLOBAL_TRADES_LIMIT")
+            .unwrap_or_else(|_| "1000".to_string())
+            .parse()
+            .context("GLOBAL_TRADES_LIMIT must be a valid number")?;
 
         let large_trade_threshold: f64 = env::var("LARGE_TRADE_THRESHOLD")
             .unwrap_or_else(|_| "1000.0".to_string())
@@ -45,6 +51,7 @@ impl Config {
         Ok(Config {
             polymarket_data_api_url,
             poll_interval_secs,
+            global_trades_limit,
             large_trade_threshold,
             stale_feed_warn_secs,
             stale_feed_consecutive_polls,
