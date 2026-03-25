@@ -94,6 +94,7 @@ Configuration is handled via a `.env` file:
 POLYMARKET_DATA_API_URL=https://data-api.polymarket.com
 POLL_INTERVAL_SECS=10
 LARGE_TRADE_THRESHOLD=1000.0
+SQLITE_DB_PATH=./pmit.db
 ```
 
 ---
@@ -103,7 +104,7 @@ LARGE_TRADE_THRESHOLD=1000.0
 - [x] Project scaffolding
 - [x] Polymarket Data API integration
 - [x] Async global-trade polling
-- [ ] Local data storage
+- [x] Local data storage
 - [ ] First statistical anomaly detection signal
 - [ ] Public dataset release
 - [ ] Dashboard / web frontend

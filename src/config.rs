@@ -8,6 +8,7 @@ pub struct Config {
     pub large_trade_threshold: f64,
     pub stale_feed_warn_secs: u64,
     pub stale_feed_consecutive_polls: u32,
+    pub sqlite_db_path: String,
 }
 
 impl Config {
@@ -39,12 +40,15 @@ impl Config {
             .parse()
             .context("STALE_FEED_CONSECUTIVE_POLLS must be a valid number")?;
 
+        let sqlite_db_path = env::var("SQLITE_DB_PATH").unwrap_or_else(|_| "./pmit.db".to_string());
+
         Ok(Config {
             polymarket_data_api_url,
             poll_interval_secs,
             large_trade_threshold,
             stale_feed_warn_secs,
             stale_feed_consecutive_polls,
+            sqlite_db_path,
         })
     }
 }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 // The struct representing a single trade from the global firehose
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Trade {
     #[serde(alias = "proxyWallet")]
     pub maker_address: String,
@@ -25,7 +25,10 @@ pub async fn fetch_global_trades(
     limit: usize,
 ) -> Result<Vec<Trade>> {
     // Add a timestamp cache buster to bypass Cloudflare CDN caching
-    let ts = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis();
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
     let url = format!("{}/trades?limit={}&_t={}", data_api_url, limit, ts);
     let res = client
         .get(&url)

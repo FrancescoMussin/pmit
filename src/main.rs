@@ -1,6 +1,7 @@
 #![allow(warnings)]
 
 mod config;
+mod db;
 mod polymarket;
 
 use anyhow::Result;
@@ -15,10 +16,12 @@ use tokio::time::{Duration, sleep};
 async fn main() -> Result<()> {
     // 1. Load configuration
     let config = Config::load()?;
+    db::init(&config.sqlite_db_path)?;
     println!(
         "Loaded config! Polling Global Trades API every {} seconds",
         config.poll_interval_secs
     );
+    println!("SQLite storage initialized at {}", config.sqlite_db_path);
     println!(
         "Staleness detector: warn_lag={}s, consecutive_polls={}",
         config.stale_feed_warn_secs, config.stale_feed_consecutive_polls
@@ -93,6 +96,13 @@ async fn main() -> Result<()> {
                         processed_trades.put(trade.transaction_hash.clone(), ());
                         new_trades_count += 1;
 
+                        if let Err(e) = db::insert_trade(&config.sqlite_db_path, &trade) {
+                            eprintln!(
+                                "Failed to persist trade {}: {:?}",
+                                trade.transaction_hash, e
+                            );
+                        }
+
                         // Fire off to our central processing logic
                         handle_trade(
                             &mut recent_users,
@@ -148,11 +158,21 @@ fn handle_trade(
             let client_clone = client.clone();
             let address_clone = trade.maker_address.clone();
             let api_url = config.polymarket_data_api_url.clone();
+            let db_path = config.sqlite_db_path.clone();
 
             tokio::spawn(async move {
                 match polymarket::fetch_user_activity(&client_clone, &api_url, &address_clone).await
                 {
                     Ok(activity) => {
+                        if let Err(e) =
+                            db::insert_user_activity_snapshot(&db_path, &address_clone, &activity)
+                        {
+                            eprintln!(
+                                "  -> Failed to persist activity snapshot for {}: {:?}",
+                                address_clone, e
+                            );
+                        }
+
                         // Log a snippet of their history
                         let json_str = serde_json::to_string(&activity).unwrap_or_default();
                         let preview: String = json_str.chars().take(200).collect();
