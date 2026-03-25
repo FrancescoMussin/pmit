@@ -7,7 +7,7 @@
 
 ## What is this?
 
-PMIT is a real-time data pipeline and anomaly detection system for prediction markets (starting with Polymarket). It streams live trade and order book data, flags statistically suspicious activity, and publishes findings as an open, reproducible dataset.
+PMIT is a real-time data pipeline and anomaly detection system for prediction markets (starting with Polymarket). It currently polls the global trades feed, profiles notable trader activity, and is evolving toward statistically robust detection with reproducible public outputs.
 
 The goal is not to profit from manipulation — it's to document it, understand it, and make it visible to the public.
 
@@ -31,17 +31,17 @@ If the answer to any of these is yes, average participants deserve to know.
 ## Architecture
 
 ```
-Polymarket API
+Polymarket Data API
       │
       ▼
 ┌─────────────────────┐
-│  Rust + Tokio       │  ← async stream ingestion, one task per market
+│  Rust + Tokio       │  ← async global-trade polling and ingestion
 │  Ingestion Pipeline │
 └─────────┬───────────┘
           │
           ▼
 ┌─────────────────────┐
-│  Local SQLite / DB  │  ← raw trade + order book data
+│  Local SQLite / DB  │  ← raw global trades + account activity data
 └─────────┬───────────┘
           │
           ▼
@@ -59,19 +59,20 @@ Polymarket API
 
 ## Detection Signals
 
-| Signal                      | Method                           | Status  |
-|-----------------------------|----------------------------------|---------|
-| Odds moving before news     | News feed lag analysis           | Planned |
-| Large coordinated bets      | Clustering on bet timing + size  | Planned |
-| Anomalous account win rates | Statistical testing vs. baseline | Planned |
-| Combined suspicion score    | Weighted composite signal        | Planned |
+| Signal                         | Method                                   | Status      |
+|--------------------------------|------------------------------------------|-------------|
+| Large-trade whale profiling    | Threshold trigger + recent-user cache    | In Progress |
+| Odds moving before news        | News feed lag analysis                   | Planned     |
+| Large coordinated bets         | Clustering on bet timing + size          | Planned     |
+| Anomalous account win rates    | Statistical testing vs. baseline         | Planned     |
+| Combined suspicion score       | Weighted composite signal                | Planned     |
 
 ---
 
 ## Tech Stack
 
 - **Rust + Tokio** — async ingestion pipeline
-- **reqwest** — HTTP client for Polymarket API
+- **reqwest** — HTTP client for Polymarket Data API
 - **SQLite / serde** — local storage and deserialization
 - **Python (pandas, scipy)** — statistical analysis and anomaly detection
 - **Quarto / matplotlib** — reproducible reports and visualizations
@@ -90,9 +91,9 @@ cargo run
 Configuration is handled via a `.env` file:
 
 ```env
-POLYMARKET_API_URL=https://...
+POLYMARKET_DATA_API_URL=https://data-api.polymarket.com
 POLL_INTERVAL_SECS=10
-MARKETS=market_id_1,market_id_2
+LARGE_TRADE_THRESHOLD=1000.0
 ```
 
 ---
@@ -100,10 +101,10 @@ MARKETS=market_id_1,market_id_2
 ## Roadmap
 
 - [x] Project scaffolding
-- [ ] Polymarket API integration
-- [ ] Async multi-market polling
+- [x] Polymarket Data API integration
+- [x] Async global-trade polling
 - [ ] Local data storage
-- [ ] First anomaly detection signal
+- [ ] First statistical anomaly detection signal
 - [ ] Public dataset release
 - [ ] Dashboard / web frontend
 
