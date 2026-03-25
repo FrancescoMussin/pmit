@@ -3,7 +3,7 @@ mod polymarket;
 
 use anyhow::Result;
 use config::Config;
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
 use lru::LruCache;
 use std::num::NonZeroUsize;
 use tokio::time::{sleep, Duration};
@@ -25,48 +25,72 @@ async fn main() -> Result<()> {
 
     // 4. Connect to WebSocket
     println!("Connecting to Polymarket WebSocket...");
-    let mut ws_stream = polymarket::subscribe_to_markets(
+    let ws_stream = polymarket::subscribe_to_markets(
         &config.polymarket_ws_url,
         &config.markets,
     ).await?;
     println!("Connected and subscribed to markets: {:?}", config.markets);
 
+    let (mut ws_write, mut ws_read) = ws_stream.split();
+    let mut ping_interval = tokio::time::interval(Duration::from_secs(10));
+
     // 5. Processing Loop
-    while let Some(msg_result) = ws_stream.next().await {
-        match msg_result {
-            Ok(Message::Text(text)) => {
-                println!("RAW WS TEXT: {}", text);
-                // Let's parse the JSON to inspect the structure
-                if let Ok(json_array) = serde_json::from_str::<Vec<serde_json::Value>>(&text) {
-                    for event in json_array {
-                        // Check if it's a trade event and extract maker_address
-                        if let Some(event_type) = event.get("event").and_then(|v| v.as_str()) {
-                            if event_type == "trade" {
-                                if let Some(maker_address) = event.get("maker_address").and_then(|v| v.as_str()) {
-                                    handle_trade(&mut recent_users, http_client.clone(), config.clone(), maker_address.to_string(), event.clone());
-                                }
-                            } else {
-                                // Just log other events temporarily to understand the stream
-                                // println!("Ignored event '{}': {:?}", event_type, event);
-                            }
-                        }
-                    }
-                } else {
-                    println!("Received non-array text message: {}", text);
+    loop {
+        tokio::select! {
+            _ = ping_interval.tick() => {
+                // Polymarket requires a literal "ping" string to keep the connection alive
+                if let Err(e) = ws_write.send(Message::Text("ping".into())).await {
+                    eprintln!("Failed to send ping: {:?}", e);
+                    break;
                 }
             }
-            Ok(Message::Ping(p)) => {
-                // Tungstenite usually handles pongs automatically, but we can log
-                println!("Ping received");
+            msg_option = ws_read.next() => {
+                let msg_result = match msg_option {
+                    Some(m) => m,
+                    None => {
+                        println!("WebSocket stream ended.");
+                        break;
+                    }
+                };
+
+                match msg_result {
+                    Ok(Message::Text(text)) => {
+                        // Polymarket server responds with "pong"
+                        if text == "pong" || text == "\"pong\"" {
+                            continue;
+                        }
+                        
+                        println!("RAW WS TEXT: {}", text);
+                        // Let's parse the JSON to inspect the structure
+                        if let Ok(json_array) = serde_json::from_str::<Vec<serde_json::Value>>(&text) {
+                            for event in json_array {
+                                // Check if it's a trade event and extract maker_address
+                                if let Some(event_type) = event.get("event").and_then(|v| v.as_str()) {
+                                    if event_type == "trade" {
+                                        if let Some(maker_address) = event.get("maker_address").and_then(|v| v.as_str()) {
+                                            handle_trade(&mut recent_users, http_client.clone(), config.clone(), maker_address.to_string(), event.clone());
+                                        }
+                                    } else {
+                                        // Just log other events temporarily to understand the stream
+                                        // println!("Ignored event '{}': {:?}", event_type, event);
+                                    }
+                                }
+                            }
+                        } else {
+                            println!("Received non-array text message: {}", text);
+                        }
+                    }
+                    Ok(Message::Ping(_)) => println!("Ping received"),
+                    Ok(Message::Close(c)) => {
+                        println!("WebSocket closed remotely: {:?}", c);
+                        break;
+                    }
+                    Err(e) => {
+                        eprintln!("WebSocket Error: {:?}", e);
+                    }
+                    _ => {}
+                }
             }
-            Ok(Message::Close(c)) => {
-                println!("WebSocket closed remotely: {:?}", c);
-                break;
-            }
-            Err(e) => {
-                eprintln!("WebSocket Error: {:?}", e);
-            }
-            _ => {}
         }
     }
 

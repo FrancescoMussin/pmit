@@ -82,7 +82,7 @@ Polymarket API
 
 ```bash
 git clone https://github.com/yourorg/PMIT
-cd PMIT
+cd pmit
 cargo build
 cargo run
 ```
@@ -106,7 +106,6 @@ MARKETS=market_id_1,market_id_2
 - [ ] First anomaly detection signal
 - [ ] Public dataset release
 - [ ] Dashboard / web frontend
-- [ ] Methodology paper
 
 ---
 
