@@ -3,6 +3,7 @@
 mod config;
 mod db;
 mod polymarket;
+mod trade_filter;
 
 use anyhow::Result;
 use config::Config;
@@ -11,6 +12,7 @@ use polymarket::Trade;
 use std::num::NonZeroUsize;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{Duration, sleep};
+use trade_filter::TradeFilter;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -37,6 +39,7 @@ async fn main() -> Result<()> {
 
     // 3. Create a shared HTTP Client for the application
     let http_client = reqwest::Client::new();
+    let trade_filter = TradeFilter::new();
 
     // 4. Create our polling interval
     let mut poll_interval = tokio::time::interval(Duration::from_secs(config.poll_interval_secs));
@@ -110,6 +113,7 @@ async fn main() -> Result<()> {
                         // Fire off to our central processing logic
                         handle_trade(
                             &mut recent_users,
+                            &trade_filter,
                             http_client.clone(),
                             config.clone(),
                             trade,
@@ -134,6 +138,7 @@ async fn main() -> Result<()> {
 /// Core application logic for processing a new trade
 fn handle_trade(
     recent_users: &mut LruCache<String, ()>,
+    trade_filter: &TradeFilter,
     client: reqwest::Client,
     config: Config,
     trade: Trade,
@@ -141,20 +146,30 @@ fn handle_trade(
     let total_value = trade.size * trade.price;
     let bet_title = trade.title.as_deref().unwrap_or("Unknown Market");
     let bet_outcome = trade.outcome.as_deref().unwrap_or("N/A");
+    let should_print_trade = trade_filter.should_print_trade(&trade);
 
-    println!(
-        "🚨 TRADE -> {} [{}] | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2}) | Maker: {}",
-        bet_title, bet_outcome, trade.size, trade.price, total_value, trade.maker_address
-    );
+    if should_print_trade {
+        println!(
+            "🚨 TRADE -> {} [{}] | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2}) | Maker: {}",
+            bet_title, bet_outcome, trade.size, trade.price, total_value, trade.maker_address
+        );
+    }
 
     // Only profile users if their trade value is >= our threshold
     if total_value >= config.large_trade_threshold {
         // If we haven't checked this user recently, fetch their history in background
         if !recent_users.contains(&trade.maker_address) {
-            println!(
-                "  🤑 WHALE ALERT! New large trader detected! Fetching activity profile for {}...",
-                trade.maker_address
-            );
+            if should_print_trade {
+                println!(
+                    "  🤑 WHALE ALERT! New large trader detected! Fetching activity profile for {}...",
+                    trade.maker_address
+                );
+            } else {
+                println!(
+                    "  🤑 WHALE ALERT (filtered trade) -> {} [{}] | Value: ${:.2} | Maker: {}",
+                    bet_title, bet_outcome, total_value, trade.maker_address
+                );
+            }
 
             // Mark them as seen in the cache immediately so we don't spawn multiple tasks
             recent_users.put(trade.maker_address.clone(), ());
