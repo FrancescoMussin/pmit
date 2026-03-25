@@ -3,141 +3,105 @@ mod polymarket;
 
 use anyhow::Result;
 use config::Config;
-use futures_util::{SinkExt, StreamExt};
 use lru::LruCache;
+use polymarket::Trade;
 use std::num::NonZeroUsize;
 use tokio::time::{sleep, Duration};
-use tokio_tungstenite::tungstenite::protocol::Message;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // 1. Load configuration
     let config = Config::load()?;
-    println!("Loaded config: {} markets to monitor", config.markets.len());
+    println!("Loaded config! Polling Global Trades API every {} seconds", config.poll_interval_secs);
 
-    // 2. Initialize LRU Cache (to prevent spamming API for same users)
-    // Cache up to 1000 addresses
+    // 2. Set up our LRU (Least Recently Used) Caches
+    // This cache limits memory usage by only remembering the 1,000 most recently queried addresses
     let mut recent_users: LruCache<String, ()> =
         LruCache::new(NonZeroUsize::new(1000).unwrap());
+    
+    // We also need a cache to remember which trades we've already processed, 
+    // so our 5-second polling loop doesn't double-count the same trade.
+    let mut processed_trades: LruCache<String, ()> = 
+        LruCache::new(NonZeroUsize::new(5000).unwrap());
 
-    // 3. Setup HTTP Client for Data API
+    // 3. Create a shared HTTP Client for the application
     let http_client = reqwest::Client::new();
+    
+    // 4. Create our polling interval
+    let mut poll_interval = tokio::time::interval(Duration::from_secs(config.poll_interval_secs));
 
-    // 4. Connect to WebSocket
-    println!("Connecting to Polymarket WebSocket...");
-    let ws_stream = polymarket::subscribe_to_markets(
-        &config.polymarket_ws_url,
-        &config.markets,
-    ).await?;
-    println!("Connected and subscribed to markets: {:?}", config.markets);
-
-    let (mut ws_write, mut ws_read) = ws_stream.split();
-    let mut ping_interval = tokio::time::interval(Duration::from_secs(10));
-
-    // 5. Processing Loop
+    // 5. Background Polling Loop
+    println!("Starting global trade Watchdog... Polling every {}s", config.poll_interval_secs);
     loop {
-        tokio::select! {
-            _ = ping_interval.tick() => {
-                // Polymarket requires a literal "ping" string to keep the connection alive
-                if let Err(e) = ws_write.send(Message::Text("ping".into())).await {
-                    eprintln!("Failed to send ping: {:?}", e);
-                    break;
+        poll_interval.tick().await;
+        println!("--> Polling Data API for new trades...");
+        
+        // Fetch the last 100 global trades across all of Polymarket
+        match polymarket::fetch_global_trades(&http_client, &config.polymarket_data_api_url, 100).await {
+            Ok(trades) => {
+                let mut new_trades_count = 0;
+                // Since trades are usually returned newest-first, we process them in reverse
+                // so the console output reads in actual chronological order.
+                for trade in trades.into_iter().rev() {
+                    // Have we already seen this trade in the last interval?
+                    if !processed_trades.contains(&trade.transaction_hash) {
+                        processed_trades.put(trade.transaction_hash.clone(), ());
+                        new_trades_count += 1;
+                        
+                        // Fire off to our central processing logic
+                        handle_trade(&mut recent_users, http_client.clone(), config.clone(), trade);
+                    }
+                }
+                
+                if new_trades_count == 0 {
+                    println!("    (No new trades in the last {} seconds)", config.poll_interval_secs);
                 }
             }
-            msg_option = ws_read.next() => {
-                let msg_result = match msg_option {
-                    Some(m) => m,
-                    None => {
-                        println!("WebSocket stream ended.");
-                        break;
-                    }
-                };
-
-                match msg_result {
-                    Ok(Message::Text(text)) => {
-                        // Polymarket server responds with "pong"
-                        if text == "pong" || text == "\"pong\"" {
-                            continue;
-                        }
-                        
-                        println!("RAW WS TEXT: {}", text);
-                        // Let's parse the JSON to inspect the structure
-                        if let Ok(json_array) = serde_json::from_str::<Vec<serde_json::Value>>(&text) {
-                            for event in json_array {
-                                // Check if it's a trade event and extract maker_address
-                                if let Some(event_type) = event.get("event").and_then(|v| v.as_str()) {
-                                    if event_type == "trade" {
-                                        if let Some(maker_address) = event.get("maker_address").and_then(|v| v.as_str()) {
-                                            handle_trade(&mut recent_users, http_client.clone(), config.clone(), maker_address.to_string(), event.clone());
-                                        }
-                                    } else {
-                                        // Just log other events temporarily to understand the stream
-                                        // println!("Ignored event '{}': {:?}", event_type, event);
-                                    }
-                                }
-                            }
-                        } else {
-                            println!("Received non-array text message: {}", text);
-                        }
-                    }
-                    Ok(Message::Ping(_)) => println!("Ping received"),
-                    Ok(Message::Close(c)) => {
-                        println!("WebSocket closed remotely: {:?}", c);
-                        break;
-                    }
-                    Err(e) => {
-                        eprintln!("WebSocket Error: {:?}", e);
-                    }
-                    _ => {}
-                }
+            Err(e) => {
+                eprintln!("Error fetching global trades: {:?}", e);
             }
         }
     }
-
-    Ok(())
 }
 
+/// Core application logic for processing a new trade
 fn handle_trade(
     recent_users: &mut LruCache<String, ()>,
     client: reqwest::Client,
     config: Config,
-    address: String,
-    event: serde_json::Value,
+    trade: Trade,
 ) {
-    let size_str = event.get("size").and_then(|v| v.as_str()).unwrap_or("0");
-    let price_str = event.get("price").and_then(|v| v.as_str()).unwrap_or("0");
-    
-    let size = size_str.parse::<f64>().unwrap_or(0.0);
-    let price = price_str.parse::<f64>().unwrap_or(0.0);
-    let total_value = size * price;
+    let total_value = trade.size * trade.price;
 
-    println!("🚨 TRADE EXECUTED -> Shares: {} @ Price: {} (Value: ${:.2}) | Maker: {}", size_str, price_str, total_value, address);
+    println!("🚨 TRADE -> Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2}) | Vol: {} | Maker: {}", 
+        trade.size, trade.price, total_value, trade.asset, trade.maker_address);
 
     // Only profile users if their trade value is >= our threshold
     if total_value >= config.large_trade_threshold {
         // If we haven't checked this user recently, fetch their history in background
-        if !recent_users.contains(&address) {
-            println!("  🤑 WHALE ALERT! New large trader detected! Fetching activity profile for {}...", address);
+        if !recent_users.contains(&trade.maker_address) {
+            println!("  🤑 WHALE ALERT! New large trader detected! Fetching activity profile for {}...", trade.maker_address);
+            
             // Mark them as seen in the cache immediately so we don't spawn multiple tasks
-            recent_users.put(address.clone(), ());
+            recent_users.put(trade.maker_address.clone(), ());
 
             let client_clone = client.clone();
+            let address_clone = trade.maker_address.clone();
+            let api_url = config.polymarket_data_api_url.clone();
+            
             tokio::spawn(async move {
-                match polymarket::fetch_user_activity(&client_clone, &config.polymarket_data_api_url, &address).await {
+                match polymarket::fetch_user_activity(&client_clone, &api_url, &address_clone).await {
                     Ok(activity) => {
                         // Log a snippet of their history
-                        let json_str = serde_json::to_string(&activity.payload).unwrap_or_default();
+                        let json_str = serde_json::to_string(&activity).unwrap_or_default();
                         let preview: String = json_str.chars().take(200).collect();
-                        println!("  -> Profile fetched for {}! Preview: {}...", address, preview);
+                        println!("  -> Profile fetched for {}! Preview: {}...", address_clone, preview);
                     }
                     Err(e) => {
-                        eprintln!("  -> Failed to fetch activity for {}: {:?}", address, e);
+                        eprintln!("  -> Failed to fetch activity for {}: {:?}", address_clone, e);
                     }
                 }
             });
         }
-    } else {
-        // Small trade, ignored for profiling
-        // println!("  -> Small trade (${:.2}), ignored user profiling.", total_value);
     }
 }
