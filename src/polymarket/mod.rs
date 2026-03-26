@@ -2,6 +2,8 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+pub mod ws;
+
 /// Struct representing a trade on Polymarket, with fields corresponding to the JSON structure returned by the Polymarket Data API.
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Trade {

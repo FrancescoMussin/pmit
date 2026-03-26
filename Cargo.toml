@@ -13,3 +13,5 @@ anyhow = "1.0.86"
 lru = "0.16.3"
 futures-util = "0.3.32"
 rusqlite = { version = "0.37.0", features = ["bundled"] }
+tokio-tungstenite = "0.23"
+url = "2.5"

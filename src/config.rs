@@ -6,6 +6,10 @@ use std::env;
 pub struct Config {
     /// The base URL for the Polymarket Data API.
     pub polymarket_data_api_url: String,
+    /// The WebSocket URL for Polymarket realtime trades.
+    pub polymarket_ws_url: String,
+    /// Comma-separated market IDs to subscribe to on the WebSocket.
+    pub polymarket_market_ids: Vec<String>,
     /// The interval in seconds at which the application polls the API for new data.
     pub poll_interval_secs: u64,
     /// The maximum number of recent trades to fetch globally across all markets.
@@ -27,6 +31,16 @@ impl Config {
 
         let polymarket_data_api_url = env::var("POLYMARKET_DATA_API_URL")
             .unwrap_or_else(|_| "https://data-api.polymarket.com".to_string());
+
+        let polymarket_ws_url = env::var("POLYMARKET_WS_URL")
+            .unwrap_or_else(|_| "wss://ws-subscriptions-clob.polymarket.com/ws/market".to_string());
+
+        let polymarket_market_ids: Vec<String> = env::var("POLYMARKET_MARKET_IDS")
+            .unwrap_or_else(|_| String::new())
+            .split(',')
+            .filter(|s| !s.is_empty())
+            .map(|s| s.trim().to_string())
+            .collect();
 
         let poll_interval_secs: u64 = env::var("POLL_INTERVAL_SECS")
             .unwrap_or_else(|_| "10".to_string())
@@ -57,6 +71,8 @@ impl Config {
 
         Ok(Config {
             polymarket_data_api_url,
+            polymarket_ws_url,
+            polymarket_market_ids,
             poll_interval_secs,
             global_trades_limit,
             large_trade_threshold,
