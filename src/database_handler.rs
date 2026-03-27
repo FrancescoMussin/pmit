@@ -51,8 +51,6 @@ impl DatabaseHandler {
                     price REAL NOT NULL,
                     -- The timestamp of when the trade occurred, in Unix time
                     timestamp INTEGER NOT NULL,
-                    -- The raw JSON data of the trade as returned by the Polymarket API, stored for reference and potential future use
-                    raw_json TEXT NOT NULL,
                     -- The timestamp of when this trade was ingested into our database, in Unix time
                     ingested_at INTEGER NOT NULL
                 );
@@ -90,16 +88,14 @@ impl DatabaseHandler {
     /// Uses `INSERT OR IGNORE` on transaction hash to keep inserts idempotent.
     pub fn insert_trade(&self, trade: &Trade) -> Result<()> {
         self.with_conn(|conn| {
-            let raw_json =
-                serde_json::to_string(trade).context("Failed to serialize trade JSON")?;
             let ingested_at = now_ts();
 
             conn.execute(
                 "
                 INSERT OR IGNORE INTO trades (
                     transaction_hash, maker_address, side, asset, title, outcome,
-                    size, price, timestamp, raw_json, ingested_at
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+                    size, price, timestamp, ingested_at
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
                 ",
                 params![
                     trade.transaction_hash,
@@ -111,7 +107,6 @@ impl DatabaseHandler {
                     trade.size,
                     trade.price,
                     trade.timestamp,
-                    raw_json,
                     ingested_at,
                 ],
             )
