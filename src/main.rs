@@ -79,7 +79,7 @@ async fn main() -> Result<()> {
         .await
         {
             Ok(raw_payload) => {
-                let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload) {
+                let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &repo) {
                     Ok(batch) => batch,
                     Err(e) => {
                         eprintln!("Error ingesting raw trades payload: {:?}", e);
@@ -128,13 +128,6 @@ async fn main() -> Result<()> {
                     if !processed_trades.contains(&trade.transaction_hash) {
                         processed_trades.put(trade.transaction_hash.clone(), ());
                         new_trades_count += 1;
-
-                        if let Err(e) = repo.insert_trade(&trade) {
-                            eprintln!(
-                                "Failed to persist trade {}: {:?}",
-                                trade.transaction_hash, e
-                            );
-                        }
 
                         // Fire off to our central processing logic
                         // this prints out the trade to terminal if it passes the filter,
