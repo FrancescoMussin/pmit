@@ -18,5 +18,6 @@ impl TradeFilter {
             && !title.contains("Fifa")
             && !title.contains("nba")
             && !title.contains("f1")
+            && !title.contains("world cup")
     }
 }
