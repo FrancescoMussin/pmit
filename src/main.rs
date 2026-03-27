@@ -112,6 +112,14 @@ async fn main() -> Result<()> {
                     continue;
                 }
 
+                // here the ingestor should give the trades to the exposure engine
+                 
+                // here the exposure engine should give the trades to the routing engine
+
+                // the routing engine should give the relevant trades to the context engine
+
+                // the context engine should give the trades to the final model
+
                 for trade in new_trades {
                     handle_trade(
                         &mut recent_users,

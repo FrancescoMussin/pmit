@@ -18,13 +18,13 @@ Refactor PMIT into a staged real-time pipeline that:
 1. Ingest
 - Collect trades in real time from the selected source and store raw events so no information is lost.
 
-2. Triage
+2. Exposure
 - Perform a fast first-pass assessment (for example on market text/exposure) to prioritize what needs deeper analysis.
 
 3. Route
 - Apply policy decisions to decide which trades move forward immediately, which are deferred, and which are ignored for now.
 
-4. Enrich
+4. Context
 - Gather additional context (such as maker behavior/history and related market signals) for trades selected for deeper analysis.
 
 5. Score
