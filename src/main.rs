@@ -1,12 +1,15 @@
 #![allow(warnings)]
 
 mod config;
+mod data_structures;
 mod db;
+mod ingestor;
 mod polymarket;
 mod trade_filter;
 
 use anyhow::Result;
 use config::Config;
+use ingestor::TradeIngestor;
 use lru::LruCache;
 use polymarket::Trade;
 use std::num::NonZeroUsize;
@@ -42,6 +45,7 @@ async fn main() -> Result<()> {
 
     // 3. Create a shared HTTP Client for the application
     let http_client = reqwest::Client::new();
+    let trade_ingestor = TradeIngestor::new();
     // we can initialize the trade filter
     let trade_filter = TradeFilter::new();
 
@@ -61,16 +65,24 @@ async fn main() -> Result<()> {
         poll_interval.tick().await;
         println!("--> Polling Data API for new trades...");
 
-        // Fetch the latest global trades across all of Polymarket.
-        // fetch_global_trades returns a future of a result so we .await it and also handle any errors that come back with a match statement
-        match polymarket::fetch_global_trades(
+        // Fetch raw global trades payload and normalize via the ingestor.
+        match polymarket::fetch_global_trades_raw_json(
             &http_client,
             &config.polymarket_data_api_url,
             config.global_trades_limit,
         )
         .await
         {
-            Ok(trades) => {
+            Ok(raw_payload) => {
+                let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload) {
+                    Ok(batch) => batch,
+                    Err(e) => {
+                        eprintln!("Error ingesting raw trades payload: {:?}", e);
+                        continue;
+                    }
+                };
+                let trades = ingested_batch.into_trades();
+
                 let mut new_trades_count = 0;
                 // we look at the newest trade's timestamp to see how fresh the feed is. If it's older than our configured threshold, we log a warning.
                 // If this happens for multiple consecutive polls, we log that pattern as well since it often indicates an issue with CDN caching.

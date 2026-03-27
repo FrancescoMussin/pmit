@@ -1,24 +1,87 @@
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// Struct representing a trade on Polymarket, with fields corresponding to the JSON structure returned by the Polymarket Data API.
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct Trade {
-    // this makes it so that when serde converts this to json (and viceversa), tha maker_adress is
-    // named as proxyWallet, which is how it is in the API response.
-    #[serde(alias = "proxyWallet")]
-    pub maker_address: String,
-    pub side: String,
-    pub asset: String,
-    pub title: Option<String>,
-    pub outcome: Option<String>,
-    pub size: f64,
-    pub price: f64,
-    pub timestamp: u64,
-    // same thing here
-    #[serde(alias = "transactionHash")]
-    pub transaction_hash: String,
+pub use crate::data_structures::trade::Trade;
+
+/// HTTP adapter for Polymarket Data API.
+///
+/// Intended flow for the refactor:
+/// - call `fetch_global_trades_raw_json` here
+/// - hand raw payload to `TradeIngestor`
+/// - let the ingestor normalize into stage-friendly structs
+#[derive(Debug, Clone)]
+pub struct PolymarketDataApi {
+    client: reqwest::Client,
+    base_url: String,
+}
+
+impl PolymarketDataApi {
+    /// Create a new instance of the PolymarketDataApi with the given HTTP client and base URL.
+    // the reqwest client is initialized in the main, the base url is passed from the config
+    pub fn new(client: reqwest::Client, base_url: String) -> Self {
+        Self { client, base_url }
+    }
+
+    /// This function fetches the global trades from the Polymarket Data API and returns the raw JSON payload as a `Value`.
+    pub async fn fetch_global_trades_raw_json(&self, limit: usize) -> Result<Value> {
+        let url = self.global_trades_url(limit);
+        let res = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to send GET request for global trades")?
+            .error_for_status()
+            .context("Polymarket API returned an error for global trades")?;
+
+        let payload = res
+            .json::<Value>()
+            .await
+            .context("Failed to parse JSON response for global trades")?;
+
+        if !payload.is_array() {
+            anyhow::bail!("Expected global trades payload to be a JSON array");
+        }
+
+        Ok(payload)
+    }
+    
+    /// Fetch and decode global trades directly into typed `Trade` records.
+    pub async fn fetch_global_trades(&self, limit: usize) -> Result<Vec<Trade>> {
+        let payload = self.fetch_global_trades_raw_json(limit).await?;
+        let trades = serde_json::from_value::<Vec<Trade>>(payload)
+            .context("Failed to decode global trades into Trade structs")?;
+        Ok(trades)
+    }
+
+    /// Fetch a specific user's betting history from the Polymarket Data API.
+    pub async fn fetch_user_activity(&self, user_address: &str) -> Result<Vec<Value>> {
+        let url = format!("{}/activity?user={}", self.base_url, user_address);
+
+        let res = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to send GET request for user activity")?
+            .error_for_status()
+            .context("Polymarket API returned an error for user activity")?;
+
+        let activity = res
+            .json::<Vec<Value>>()
+            .await
+            .context("Failed to parse JSON response for user activity")?;
+
+        Ok(activity)
+    }
+
+    fn global_trades_url(&self, limit: usize) -> String {
+        let ts = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis();
+        format!("{}/trades?limit={}&_t={}", self.base_url, limit, ts)
+    }
 }
 
 /// Fetch global trades from the Polymarket Data API
@@ -27,31 +90,18 @@ pub async fn fetch_global_trades(
     data_api_url: &str,
     limit: usize,
 ) -> Result<Vec<Trade>> {
-    // this block does one full API request cycle and turns the response into a vector of Trade structs.
+    let api = PolymarketDataApi::new(client.clone(), data_api_url.to_string());
+    api.fetch_global_trades(limit).await
+}
 
-    // Add a timestamp cache buster to bypass Cloudflare CDN caching (meaning we get the most recent trades
-    // instead of cached ones) and ensure we are always getting the latest data.
-    let ts = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis();
-    // we construct the URL for the API request, including the limit and the timestamp cache buster.
-    let url = format!("{}/trades?limit={}&_t={}", data_api_url, limit, ts);
-    // we send the GET request to the API and wait for the response.
-    let res = client
-        .get(&url)
-        .send()
-        .await
-        .context("Failed to send GET request for global trades")?
-        .error_for_status()
-        .context("Polymarket API returned an error for global trades")?;
-    // we parse the JSON response into a vector of Trade structs.
-    let trades = res
-        .json::<Vec<Trade>>()
-        .await
-        .context("Failed to parse JSON response for global trades")?;
-
-    Ok(trades)
+/// Fetch raw global trades JSON payload from the Polymarket Data API.
+pub async fn fetch_global_trades_raw_json(
+    client: &reqwest::Client,
+    data_api_url: &str,
+    limit: usize,
+) -> Result<Value> {
+    let api = PolymarketDataApi::new(client.clone(), data_api_url.to_string());
+    api.fetch_global_trades_raw_json(limit).await
 }
 
 /// Fetch a specific user's betting history from the Polymarket Data API
@@ -60,25 +110,6 @@ pub async fn fetch_user_activity(
     data_api_url: &str,
     user_address: &str,
 ) -> Result<Vec<Value>> {
-    // we get the url out of which we have to fetch the user activity
-    let url = format!("{}/activity?user={}", data_api_url, user_address);
-
-    // we send the GET request to the API and wait for the response.
-    let res = client
-        .get(&url)
-        .send()
-        .await
-        .context("Failed to send GET request for user activity")?
-        .error_for_status()
-        .context("Polymarket API returned an error for user activity")?;
-
-    // we parse this into a vec of Values because the structure of the user activity
-    // response is more complex and can contain different types of activities, so we
-    // will handle the parsing of these activities later on when we process the user activity data.
-    let activity = res
-        .json::<Vec<Value>>()
-        .await
-        .context("Failed to parse JSON response for user activity")?;
-
-    Ok(activity)
+    let api = PolymarketDataApi::new(client.clone(), data_api_url.to_string());
+    api.fetch_user_activity(user_address).await
 }
