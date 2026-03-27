@@ -8,7 +8,9 @@ use std::fmt;
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Side {
+    #[serde(alias = "BUY")]
     Buy,
+    #[serde(alias = "SELL")]
     Sell,
 }
 
@@ -178,6 +180,20 @@ mod tests {
     fn test_side_sell_deserialization() {
         let json = r#""sell""#;
         let side: Side = serde_json::from_str(json).expect("Failed to deserialize");
+        assert_eq!(side, Side::Sell);
+    }
+
+    #[test]
+    fn test_side_buy_deserialization_uppercase() {
+        let json = r#""BUY""#;
+        let side: Side = serde_json::from_str(json).expect("Failed to deserialize uppercase");
+        assert_eq!(side, Side::Buy);
+    }
+
+    #[test]
+    fn test_side_sell_deserialization_uppercase() {
+        let json = r#""SELL""#;
+        let side: Side = serde_json::from_str(json).expect("Failed to deserialize uppercase");
         assert_eq!(side, Side::Sell);
     }
 

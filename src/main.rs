@@ -88,66 +88,38 @@ async fn main() -> Result<()> {
                 };
                 let trades = ingested_batch.into_trades();
 
-                let mut new_trades_count = 0;
-                // we look at the newest trade's timestamp to see how fresh the feed is. If it's older than our configured threshold, we log a warning.
-                // If this happens for multiple consecutive polls, we log that pattern as well since it often indicates an issue with CDN caching.
-                if let Some(newest_trade_ts) = trades.iter().map(|t| t.timestamp).max() {
-                    let now_ts = SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap_or_default()
-                        .as_secs();
-                    let lag_secs = now_ts.saturating_sub(newest_trade_ts);
-
-                    if lag_secs >= config.stale_feed_warn_secs {
-                        stale_streak += 1;
-                        eprintln!(
-                            "[STALE FEED] newest trade is {}s old (threshold={}s, streak={})",
-                            lag_secs, config.stale_feed_warn_secs, stale_streak
-                        );
-
-                        if stale_streak >= config.stale_feed_consecutive_polls {
-                            eprintln!(
-                                "[STALE FEED] sustained staleness detected. This often indicates CDN/API cache windows."
-                            );
-                        }
-                    } else {
-                        if stale_streak > 0 {
-                            println!(
-                                "Feed freshness recovered after {} stale poll(s). Current lag={}s",
-                                stale_streak, lag_secs
-                            );
-                        }
-                        stale_streak = 0;
-                    }
+                if trades.is_empty() {
+                    println!(
+                        "    (No trades returned in the last {} seconds)",
+                        config.poll_interval_secs
+                    );
+                    continue;
                 }
 
-                // Since trades are usually returned newest-first, we process them in reverse
-                // so the console output reads in actual chronological order.
-                for trade in trades.into_iter().rev() {
-                    // Have we already seen this trade in the last interval?
-                    if !processed_trades.contains(&trade.transaction_hash) {
-                        processed_trades.put(trade.transaction_hash.clone(), ());
-                        new_trades_count += 1;
+                stale_streak = update_stale_feed_streak(
+                    &trades,
+                    stale_streak,
+                    config.stale_feed_warn_secs,
+                    config.stale_feed_consecutive_polls,
+                );
 
-                        // Fire off to our central processing logic
-                        // this prints out the trade to terminal if it passes the filter,
-                        // and also checks if we should profile the user behind the trade based on our configured threshold,
-                        // in which case this spawns a new asynchronous task to fetch their history and persist it to the database.
-                        handle_trade(
-                            &mut recent_users,
-                            &trade_filter,
-                            http_client.clone(),
-                            repo.clone(),
-                            config.clone(),
-                            trade,
-                        );
-                    }
-                }
-
-                if new_trades_count == 0 {
+                let new_trades = extract_unseen_trades(trades, &mut processed_trades);
+                if new_trades.is_empty() {
                     println!(
                         "    (No new trades in the last {} seconds)",
                         config.poll_interval_secs
+                    );
+                    continue;
+                }
+
+                for trade in new_trades {
+                    handle_trade(
+                        &mut recent_users,
+                        &trade_filter,
+                        http_client.clone(),
+                        repo.clone(),
+                        config.clone(),
+                        trade,
                     );
                 }
             }
@@ -156,6 +128,63 @@ async fn main() -> Result<()> {
             }
         }
     }
+}
+
+fn update_stale_feed_streak(
+    trades: &[Trade],
+    current_streak: u32,
+    stale_feed_warn_secs: u64,
+    stale_feed_consecutive_polls: u32,
+) -> u32 {
+    let Some(newest_trade_ts) = trades.iter().map(|t| t.timestamp).max() else {
+        return current_streak;
+    };
+
+    let now_ts = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let lag_secs = now_ts.saturating_sub(newest_trade_ts);
+
+    if lag_secs >= stale_feed_warn_secs {
+        let next_streak = current_streak + 1;
+        eprintln!(
+            "[STALE FEED] newest trade is {}s old (threshold={}s, streak={})",
+            lag_secs, stale_feed_warn_secs, next_streak
+        );
+
+        if next_streak >= stale_feed_consecutive_polls {
+            eprintln!(
+                "[STALE FEED] sustained staleness detected. This often indicates CDN/API cache windows."
+            );
+        }
+
+        next_streak
+    } else {
+        if current_streak > 0 {
+            println!(
+                "Feed freshness recovered after {} stale poll(s). Current lag={}s",
+                current_streak, lag_secs
+            );
+        }
+        0
+    }
+}
+
+fn extract_unseen_trades(
+    trades: Vec<Trade>,
+    processed_trades: &mut LruCache<String, ()>,
+) -> Vec<Trade> {
+    let mut unseen = Vec::new();
+
+    for trade in trades {
+        if !processed_trades.contains(&trade.transaction_hash) {
+            processed_trades.put(trade.transaction_hash.clone(), ());
+            unseen.push(trade);
+        }
+    }
+
+    unseen
 }
 
 /// This function processes each trade.
