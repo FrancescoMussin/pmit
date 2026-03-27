@@ -2,13 +2,14 @@
 
 mod config;
 mod data_structures;
-mod db;
+mod database_handler;
 mod ingestor;
 mod polymarket;
 mod trade_filter;
 
 use anyhow::Result;
 use config::Config;
+use database_handler::DatabaseHandler;
 use ingestor::TradeIngestor;
 use lru::LruCache;
 use polymarket::Trade;
@@ -22,8 +23,9 @@ use trade_filter::TradeFilter;
 async fn main() -> Result<()> {
     // 1. We load the configuration
     let config = Config::load()?;
-    // we also initialize our SQLite database and schema before starting the polling loop
-    db::init(&config.sqlite_db_path)?;
+    // we also initialize our SQLite database gateway and schema before starting the polling loop
+    let repo = DatabaseHandler::new(config.sqlite_db_path.clone());
+    repo.init_schema()?;
     println!(
         "Loaded config! Polling Global Trades API every {} seconds (limit={})",
         config.poll_interval_secs, config.global_trades_limit
@@ -124,7 +126,7 @@ async fn main() -> Result<()> {
                         processed_trades.put(trade.transaction_hash.clone(), ());
                         new_trades_count += 1;
 
-                        if let Err(e) = db::insert_trade(&config.sqlite_db_path, &trade) {
+                        if let Err(e) = repo.insert_trade(&trade) {
                             eprintln!(
                                 "Failed to persist trade {}: {:?}",
                                 trade.transaction_hash, e
@@ -139,6 +141,7 @@ async fn main() -> Result<()> {
                             &mut recent_users,
                             &trade_filter,
                             http_client.clone(),
+                            repo.clone(),
                             config.clone(),
                             trade,
                         );
@@ -167,6 +170,7 @@ fn handle_trade(
     recent_users: &mut LruCache<String, ()>,
     trade_filter: &TradeFilter,
     client: reqwest::Client,
+    repo: DatabaseHandler,
     config: Config,
     trade: Trade,
 ) {
@@ -206,9 +210,9 @@ fn handle_trade(
             // we might need the client and the adress outside of this async block, so we clone them here to move into the new task
             let client_clone = client.clone();
             let address_clone = trade.maker_address.clone();
+            let repo_clone = repo.clone();
             // we also clone the relevant config values since we can't move the whole config struct into the async block
             let api_url = config.polymarket_data_api_url.clone();
-            let db_path = config.sqlite_db_path.clone();
 
             // tokio magic
             tokio::spawn(async move {
@@ -216,7 +220,7 @@ fn handle_trade(
                 {
                     Ok(activity) => {
                         if let Err(e) =
-                            db::insert_user_activity_snapshot(&db_path, &address_clone, &activity)
+                            repo_clone.insert_user_activity_snapshot(&address_clone, &activity)
                         {
                             eprintln!(
                                 "  -> Failed to persist activity snapshot for {}: {:?}",
