@@ -99,9 +99,9 @@ impl DatabaseHandler {
                 ",
                 params![
                     trade.transaction_hash,
-                    trade.maker_address,
-                    trade.side,
-                    trade.asset,
+                    trade.maker_address.as_str(),
+                    trade.side.to_string(),
+                    trade.asset.as_str(),
                     trade.title,
                     trade.outcome,
                     trade.size,

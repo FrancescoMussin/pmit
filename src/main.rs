@@ -3,12 +3,14 @@
 mod config;
 mod data_structures;
 mod database_handler;
+mod exposure;
 mod ingestor;
 mod polymarket;
 mod trade_filter;
 
 use anyhow::Result;
 use config::Config;
+use data_structures::WalletAddress;
 use database_handler::DatabaseHandler;
 use ingestor::TradeIngestor;
 use lru::LruCache;
@@ -38,7 +40,8 @@ async fn main() -> Result<()> {
     // 2. Set up our LRU (Least Recently Used) Caches
     // This cache limits memory usage by only remembering the 1,000 most recently queried addresses
     // the value here is () because only membership in the cache matters, not the value itself
-    let mut recent_users: LruCache<String, ()> = LruCache::new(NonZeroUsize::new(1000).unwrap());
+    let mut recent_users: LruCache<WalletAddress, ()> =
+        LruCache::new(NonZeroUsize::new(1000).unwrap());
 
     // We also need a cache to remember which trades we've already processed,
     // so our 10-second polling loop doesn't double-count the same trade.
@@ -167,7 +170,7 @@ async fn main() -> Result<()> {
 /// it checks if we've recently profiled this user. If not, it spawns a new asynchronous task to fetch their activity and persist
 /// it to the database, while also printing a preview of their profile to the console.
 fn handle_trade(
-    recent_users: &mut LruCache<String, ()>,
+    recent_users: &mut LruCache<WalletAddress, ()>,
     trade_filter: &TradeFilter,
     client: reqwest::Client,
     repo: DatabaseHandler,
@@ -216,11 +219,16 @@ fn handle_trade(
 
             // tokio magic
             tokio::spawn(async move {
-                match polymarket::fetch_user_activity(&client_clone, &api_url, &address_clone).await
+                match polymarket::fetch_user_activity(
+                    &client_clone,
+                    &api_url,
+                    address_clone.as_str(),
+                )
+                .await
                 {
                     Ok(activity) => {
-                        if let Err(e) =
-                            repo_clone.insert_user_activity_snapshot(&address_clone, &activity)
+                        if let Err(e) = repo_clone
+                            .insert_user_activity_snapshot(address_clone.as_str(), &activity)
                         {
                             eprintln!(
                                 "  -> Failed to persist activity snapshot for {}: {:?}",

@@ -1,2 +1,2 @@
 pub mod trade;
-pub use trade::Trade;
+pub use trade::{ContractId, Side, Trade, WalletAddress};
