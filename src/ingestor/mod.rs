@@ -1,8 +1,8 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use serde_json::Value;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::data_structures::Trade;
+use crate::data_structures::{Side, Trade};
 use crate::database_handler::TradeDatabaseHandler;
 
 /// Normalized batch produced by the ingestor.
@@ -61,11 +61,10 @@ impl TradeIngestor {
         raw_payload: Value,
         db_handler: &TradeDatabaseHandler,
     ) -> Result<IngestedTradeBatch> {
-        let trades: Vec<Trade> = serde_json::from_value(raw_payload)
-            .context("Failed to deserialize raw payload into trades")?;
-        self.persist_batch(db_handler, &trades)?;
+        let buy_trades = deserialize_buy_trades(raw_payload)?;
+        self.persist_batch(db_handler, &buy_trades)?;
         let ingested_at = now_ts();
-        Ok(IngestedTradeBatch::new(trades, ingested_at))
+        Ok(IngestedTradeBatch::new(buy_trades, ingested_at))
     }
 
     /// Normalize already-deserialized trades (for call sites using fetch_global_trades).
@@ -93,4 +92,32 @@ fn now_ts() -> u64 {
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs()
+}
+
+fn deserialize_buy_trades(raw_payload: Value) -> Result<Vec<Trade>> {
+    let Value::Array(items) = raw_payload else {
+        return Err(anyhow!("Expected trade payload to be a JSON array"));
+    };
+
+    let mut buy_trades = Vec::new();
+
+    for item in items {
+        let side = item
+            .get("side")
+            .and_then(Value::as_str)
+            .ok_or_else(|| anyhow!("Trade item missing side field"))?;
+
+        if !side.eq_ignore_ascii_case("buy") {
+            continue;
+        }
+
+        let trade: Trade = serde_json::from_value(item)
+            .context("Failed to deserialize buy trade from payload item")?;
+
+        if trade.side == Side::Buy {
+            buy_trades.push(trade);
+        }
+    }
+
+    Ok(buy_trades)
 }
