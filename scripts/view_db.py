@@ -144,7 +144,11 @@ def render_table(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="View SQLite tables from PMIT database")
-    parser.add_argument("--db", default="pmit.db", help="Path to SQLite DB (default: pmit.db)")
+    parser.add_argument(
+        "--db",
+        default="./databases/trades.db",
+        help="Path to SQLite DB file (default: ./databases/trades.db)",
+    )
     parser.add_argument(
         "--table",
         default="all",

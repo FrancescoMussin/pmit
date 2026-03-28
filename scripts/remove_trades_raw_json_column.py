@@ -72,8 +72,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--db",
-        default="pmit.db",
-        help="Path to SQLite DB file (default: pmit.db)",
+        default="./databases/trades.db",
+        help="Path to SQLite DB (default: ./databases/trades.db)",
     )
     parser.add_argument(
         "--dry-run",

@@ -11,7 +11,7 @@ mod trade_filter;
 use anyhow::Result;
 use config::Config;
 use data_structures::WalletAddress;
-use database_handler::DatabaseHandler;
+use database_handler::{TradeDatabaseHandler, UserHistoryDatabaseHandler, ensure_database_file};
 use ingestor::TradeIngestor;
 use lru::LruCache;
 use polymarket::Trade;
@@ -25,19 +25,31 @@ use trade_filter::TradeFilter;
 async fn main() -> Result<()> {
     // 1. We load the configuration
     let config = Config::load()?;
-    // we also initialize our SQLite database gateway and schema before starting the polling loop
-    let repo = DatabaseHandler::new(config.sqlite_db_path.clone());
-    repo.init_schema()?;
+    // 2. Initialize all database handlers and schemas before starting the polling loop.
+    let trades_db = TradeDatabaseHandler::new(config.trades_db_path.clone());
+    trades_db.init_schema()?;
+
+    let user_history_db = UserHistoryDatabaseHandler::new(config.user_history_db_path.clone());
+    user_history_db.init_schema()?;
+
+    // Training data is managed by Python workflows; we only ensure the DB file exists.
+    ensure_database_file(&config.training_db_path)?;
+
     println!(
         "Loaded config! Polling Global Trades API every {} seconds (limit={})",
         config.poll_interval_secs, config.global_trades_limit
     );
-    println!("SQLite storage initialized at {}", config.sqlite_db_path);
+    println!("Trades DB initialized at {}", config.trades_db_path);
+    println!(
+        "User history DB initialized at {}",
+        config.user_history_db_path
+    );
+    println!("Training DB initialized at {}", config.training_db_path);
     println!(
         "Staleness detector: warn_lag={}s, consecutive_polls={}",
         config.stale_feed_warn_secs, config.stale_feed_consecutive_polls
     );
-    // 2. Set up our LRU (Least Recently Used) Caches
+    // 3. Set up our LRU (Least Recently Used) Caches
     // This cache limits memory usage by only remembering the 1,000 most recently queried addresses
     // the value here is () because only membership in the cache matters, not the value itself
     let mut recent_users: LruCache<WalletAddress, ()> =
@@ -48,16 +60,16 @@ async fn main() -> Result<()> {
     let mut processed_trades: LruCache<String, ()> =
         LruCache::new(NonZeroUsize::new(5000).unwrap());
 
-    // 3. Create a shared HTTP Client for the application
+    // 4. Create a shared HTTP Client for the application
     let http_client = reqwest::Client::new();
     let trade_ingestor = TradeIngestor::new();
     // we can initialize the trade filter
     let trade_filter = TradeFilter::new();
 
-    // 4. Create our polling interval
+    // 5. Create our polling interval
     let mut poll_interval = tokio::time::interval(Duration::from_secs(config.poll_interval_secs));
 
-    // 5. Background Polling Loop
+    // 6. Background Polling Loop
     println!(
         "Starting global trade Watchdog... Polling every {}s",
         config.poll_interval_secs
@@ -79,7 +91,8 @@ async fn main() -> Result<()> {
         .await
         {
             Ok(raw_payload) => {
-                let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &repo) {
+                let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &trades_db)
+                {
                     Ok(batch) => batch,
                     Err(e) => {
                         eprintln!("Error ingesting raw trades payload: {:?}", e);
@@ -113,7 +126,7 @@ async fn main() -> Result<()> {
                 }
 
                 // here the ingestor should give the trades to the exposure engine
-                 
+
                 // here the exposure engine should give the trades to the routing engine
 
                 // the routing engine should give the relevant trades to the context engine
@@ -125,7 +138,7 @@ async fn main() -> Result<()> {
                         &mut recent_users,
                         &trade_filter,
                         http_client.clone(),
-                        repo.clone(),
+                        user_history_db.clone(),
                         config.clone(),
                         trade,
                     );
@@ -203,7 +216,7 @@ fn handle_trade(
     recent_users: &mut LruCache<WalletAddress, ()>,
     trade_filter: &TradeFilter,
     client: reqwest::Client,
-    repo: DatabaseHandler,
+    user_history_db: UserHistoryDatabaseHandler,
     config: Config,
     trade: Trade,
 ) {
@@ -243,7 +256,7 @@ fn handle_trade(
             // we might need the client and the adress outside of this async block, so we clone them here to move into the new task
             let client_clone = client.clone();
             let address_clone = trade.maker_address.clone();
-            let repo_clone = repo.clone();
+            let user_history_db_clone = user_history_db.clone();
             // we also clone the relevant config values since we can't move the whole config struct into the async block
             let api_url = config.polymarket_data_api_url.clone();
 
@@ -257,7 +270,7 @@ fn handle_trade(
                 .await
                 {
                     Ok(activity) => {
-                        if let Err(e) = repo_clone
+                        if let Err(e) = user_history_db_clone
                             .insert_user_activity_snapshot(address_clone.as_str(), &activity)
                         {
                             eprintln!(

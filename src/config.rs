@@ -16,7 +16,9 @@ pub struct Config {
     pub stale_feed_warn_secs: u64,
     /// The number of consecutive polls after which to consider the feed stale.
     pub stale_feed_consecutive_polls: u32,
-    pub sqlite_db_path: String,
+    pub trades_db_path: String,
+    pub user_history_db_path: String,
+    pub training_db_path: String,
 }
 
 impl Config {
@@ -53,7 +55,15 @@ impl Config {
             .parse()
             .context("STALE_FEED_CONSECUTIVE_POLLS must be a valid number")?;
 
-        let sqlite_db_path = env::var("SQLITE_DB_PATH").unwrap_or_else(|_| "./pmit.db".to_string());
+        let trades_db_path = env::var("TRADES_DB_PATH")
+            .or_else(|_| env::var("SQLITE_DB_PATH"))
+            .unwrap_or_else(|_| "./databases/trades.db".to_string());
+
+        let user_history_db_path = env::var("USER_HISTORY_DB_PATH")
+            .unwrap_or_else(|_| "./databases/user_history.db".to_string());
+
+        let training_db_path =
+            env::var("TRAINING_DB_PATH").unwrap_or_else(|_| "./databases/training.db".to_string());
 
         Ok(Config {
             polymarket_data_api_url,
@@ -62,7 +72,9 @@ impl Config {
             large_trade_threshold,
             stale_feed_warn_secs,
             stale_feed_consecutive_polls,
-            sqlite_db_path,
+            trades_db_path,
+            user_history_db_path,
+            training_db_path,
         })
     }
 }

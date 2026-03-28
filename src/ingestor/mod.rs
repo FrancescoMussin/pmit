@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::data_structures::Trade;
-use crate::database_handler::DatabaseHandler;
+use crate::database_handler::TradeDatabaseHandler;
 
 /// Normalized batch produced by the ingestor.
 ///
@@ -48,7 +48,7 @@ impl TradeIngestor {
     pub fn ingest_raw_json_str(
         &self,
         raw_payload: &str,
-        db_handler: &DatabaseHandler,
+        db_handler: &TradeDatabaseHandler,
     ) -> Result<IngestedTradeBatch> {
         let raw_value: Value =
             serde_json::from_str(raw_payload).context("Failed to parse raw trade payload text")?;
@@ -59,7 +59,7 @@ impl TradeIngestor {
     pub fn ingest_raw_value(
         &self,
         raw_payload: Value,
-        db_handler: &DatabaseHandler,
+        db_handler: &TradeDatabaseHandler,
     ) -> Result<IngestedTradeBatch> {
         let trades: Vec<Trade> = serde_json::from_value(raw_payload)
             .context("Failed to deserialize raw payload into trades")?;
@@ -73,14 +73,14 @@ impl TradeIngestor {
     pub fn ingest_trades(
         &self,
         trades: Vec<Trade>,
-        db_handler: &DatabaseHandler,
+        db_handler: &TradeDatabaseHandler,
     ) -> Result<IngestedTradeBatch> {
         self.persist_batch(db_handler, &trades)?;
         let ingested_at = now_ts();
         Ok(IngestedTradeBatch::new(trades, ingested_at))
     }
 
-    fn persist_batch(&self, db_handler: &DatabaseHandler, trades: &[Trade]) -> Result<()> {
+    fn persist_batch(&self, db_handler: &TradeDatabaseHandler, trades: &[Trade]) -> Result<()> {
         for trade in trades {
             db_handler.insert_trade(trade)?;
         }

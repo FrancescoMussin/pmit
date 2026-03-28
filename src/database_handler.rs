@@ -1,21 +1,20 @@
 use anyhow::{Context, Result};
 use rusqlite::{Connection, params};
 use serde_json::Value;
+use std::fs;
+use std::path::Path;
 use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::polymarket::Trade;
 
-/// SQLite gateway for all persistence operations used by the runtime.
-///
-/// This struct is intentionally the single entry point for Rust <-> SQLite
-/// interactions so database concerns stay isolated from ingestion and triage logic.
+/// SQLite gateway for trades persistence.
 #[derive(Debug, Clone)]
-pub struct DatabaseHandler {
+pub struct TradeDatabaseHandler {
     db_path: String,
 }
 
-impl DatabaseHandler {
+impl TradeDatabaseHandler {
     /// Create a new handler bound to a database file path.
     pub fn new(db_path: String) -> Self {
         Self { db_path }
@@ -26,9 +25,9 @@ impl DatabaseHandler {
         &self.db_path
     }
 
-    /// Initialize schema and indexes required by the current pipeline.
+    /// Initialize schema and indexes for the trades database.
     pub fn init_schema(&self) -> Result<()> {
-        self.with_conn(|conn| {
+        with_conn(self.db_path(), |conn| {
             conn.execute_batch(
                 "
                 -- We create the table if it doesn't exist already.
@@ -59,22 +58,6 @@ impl DatabaseHandler {
                 CREATE INDEX IF NOT EXISTS idx_trades_timestamp ON trades(timestamp);
                 -- this creates a B-tree index on the maker_address column to speed up queries filtering by user address
                 CREATE INDEX IF NOT EXISTS idx_trades_maker_address ON trades(maker_address);
-
-                -- We also create a table to store snapshots of user activity
-                CREATE TABLE IF NOT EXISTS user_activity_snapshots (
-                    -- we assign surrogate ids automatically to each snapshot for easier referencing
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    -- the wallet address of the user whose activity is being stored
-                    user_address TEXT NOT NULL,
-                    -- the timestamp of when this snapshot was fetched from the Polymarket API, in Unix time
-                    fetched_at INTEGER NOT NULL,
-                    -- the raw JSON data of the user's activity as returned by the Polymarket API, stored for reference and potential future use
-                    raw_json TEXT NOT NULL
-                );
-
-                -- this creates a B-tree index on the user_address and fetched_at columns to speed up queries filtering by user and time
-                CREATE INDEX IF NOT EXISTS idx_user_activity_user_time
-                    ON user_activity_snapshots(user_address, fetched_at);
                 ",
             )
             .context("Failed to initialize SQLite schema")?;
@@ -87,7 +70,7 @@ impl DatabaseHandler {
     ///
     /// Uses `INSERT OR IGNORE` on transaction hash to keep inserts idempotent.
     pub fn insert_trade(&self, trade: &Trade) -> Result<()> {
-        self.with_conn(|conn| {
+        with_conn(self.db_path(), |conn| {
             let ingested_at = now_ts();
 
             conn.execute(
@@ -115,6 +98,44 @@ impl DatabaseHandler {
             Ok(())
         })
     }
+}
+
+/// SQLite gateway for user activity snapshots.
+#[derive(Debug, Clone)]
+pub struct UserHistoryDatabaseHandler {
+    db_path: String,
+}
+
+impl UserHistoryDatabaseHandler {
+    pub fn new(db_path: String) -> Self {
+        Self { db_path }
+    }
+
+    pub fn db_path(&self) -> &str {
+        &self.db_path
+    }
+
+    /// Initialize schema and indexes for user history snapshots.
+    pub fn init_schema(&self) -> Result<()> {
+        with_conn(self.db_path(), |conn| {
+            conn.execute_batch(
+                "
+                CREATE TABLE IF NOT EXISTS user_activity_snapshots (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_address TEXT NOT NULL,
+                    fetched_at INTEGER NOT NULL,
+                    raw_json TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_user_activity_user_time
+                    ON user_activity_snapshots(user_address, fetched_at);
+                ",
+            )
+            .context("Failed to initialize user history schema")?;
+
+            Ok(())
+        })
+    }
 
     /// Insert one user-activity snapshot captured during enrichment.
     pub fn insert_user_activity_snapshot(
@@ -122,7 +143,7 @@ impl DatabaseHandler {
         user_address: &str,
         activity: &[Value],
     ) -> Result<()> {
-        self.with_conn(|conn| {
+        with_conn(self.db_path(), |conn| {
             let raw_json = serde_json::to_string(activity)
                 .context("Failed to serialize user activity snapshot JSON")?;
             let fetched_at = now_ts();
@@ -139,22 +160,29 @@ impl DatabaseHandler {
             Ok(())
         })
     }
+}
 
-    /// Open/configure a connection and execute one database operation.
-    ///
-    /// This removes repeated connection boilerplate from each public method
-    /// while preserving explicit per-operation connection lifecycle.
-    fn with_conn<T, F>(&self, f: F) -> Result<T>
-    where
-        F: FnOnce(&Connection) -> Result<T>,
-    {
-        let conn = open(self.db_path())?;
-        f(&conn)
-    }
+/// Ensure a SQLite database file exists and is openable.
+///
+/// Useful for DBs managed outside this Rust service (for example, Python-side
+/// training workflows) where we still want startup validation.
+pub fn ensure_database_file(db_path: &str) -> Result<()> {
+    with_conn(db_path, |_conn| Ok(()))
+}
+
+/// Open/configure a connection and execute one database operation.
+fn with_conn<T, F>(db_path: &str, f: F) -> Result<T>
+where
+    F: FnOnce(&Connection) -> Result<T>,
+{
+    let conn = open(db_path)?;
+    f(&conn)
 }
 
 /// Open and configure a SQLite connection for concurrent read/write workload.
 fn open(db_path: &str) -> Result<Connection> {
+    ensure_parent_dir_exists(db_path)?;
+
     let conn = Connection::open(db_path)
         .with_context(|| format!("Failed to open SQLite DB at {}", db_path))?;
 
@@ -171,6 +199,17 @@ fn open(db_path: &str) -> Result<Connection> {
         .context("Failed to configure SQLite synchronous mode")?;
 
     Ok(conn)
+}
+
+fn ensure_parent_dir_exists(db_path: &str) -> Result<()> {
+    let path = Path::new(db_path);
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)
+                .with_context(|| format!("Failed to create database directory {:?}", parent))?;
+        }
+    }
+    Ok(())
 }
 
 /// Current unix timestamp in seconds.
