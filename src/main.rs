@@ -11,7 +11,10 @@ mod trade_filter;
 use anyhow::Result;
 use config::Config;
 use data_structures::WalletAddress;
-use database_handler::{TradeDatabaseHandler, UserHistoryDatabaseHandler, ensure_database_file};
+use database_handler::{
+    TradeDatabaseHandler, UserHistoryDatabaseHandler, checkpoint_database_file,
+    ensure_database_file,
+};
 use ingestor::TradeIngestor;
 use lru::LruCache;
 use polymarket::Trade;
@@ -26,10 +29,10 @@ async fn main() -> Result<()> {
     // 1. We load the configuration
     let config = Config::load()?;
     // 2. Initialize all database handlers and schemas before starting the polling loop.
-    let trades_db = TradeDatabaseHandler::new(config.trades_db_path.clone());
+    let trades_db = TradeDatabaseHandler::new(config.trades_db_path.clone())?;
     trades_db.init_schema()?;
 
-    let user_history_db = UserHistoryDatabaseHandler::new(config.user_history_db_path.clone());
+    let user_history_db = UserHistoryDatabaseHandler::new(config.user_history_db_path.clone())?;
     user_history_db.init_schema()?;
 
     // Training data is managed by Python workflows; we only ensure the DB file exists.
@@ -78,8 +81,13 @@ async fn main() -> Result<()> {
     let mut stale_streak: u32 = 0;
     // We start the polling loop, which will run indefinitely until the program is stopped
     loop {
-        // this blocks a new iteration of the loop until the configured interval has passed since the last tick
-        poll_interval.tick().await;
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                println!("Shutdown signal received. Flushing SQLite WAL checkpoints...");
+                break;
+            }
+            // this blocks a new iteration of the loop until the configured interval has passed since the last tick
+            _ = poll_interval.tick() => {
         println!("--> Polling Data API for new trades...");
 
         // Fetch raw global trades payload and normalize via the ingestor.
@@ -148,7 +156,24 @@ async fn main() -> Result<()> {
                 eprintln!("Error fetching global trades: {:?}", e);
             }
         }
+            }
+        }
     }
+
+    if let Err(e) = trades_db.checkpoint_truncate() {
+        eprintln!("Failed to checkpoint trades DB: {:?}", e);
+    }
+
+    if let Err(e) = user_history_db.checkpoint_truncate() {
+        eprintln!("Failed to checkpoint user history DB: {:?}", e);
+    }
+
+    if let Err(e) = checkpoint_database_file(&config.training_db_path) {
+        eprintln!("Failed to checkpoint training DB: {:?}", e);
+    }
+
+    println!("Shutdown checkpoint complete.");
+    Ok(())
 }
 
 fn update_stale_feed_streak(

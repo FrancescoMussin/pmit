@@ -1,8 +1,9 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use rusqlite::{Connection, params};
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -11,13 +12,20 @@ use crate::polymarket::Trade;
 /// SQLite gateway for trades persistence.
 #[derive(Debug, Clone)]
 pub struct TradeDatabaseHandler {
+    // The file path to the SQLite database for trades.
     db_path: String,
+    // The SQLite connection wrapped in an Arc<Mutex<>> to allow for safe concurrent access across threads.
+    conn: Arc<Mutex<Connection>>,
 }
 
 impl TradeDatabaseHandler {
     /// Create a new handler bound to a database file path.
-    pub fn new(db_path: String) -> Self {
-        Self { db_path }
+    pub fn new(db_path: String) -> Result<Self> {
+        let conn = open(&db_path)?;
+        Ok(Self {
+            db_path,
+            conn: Arc::new(Mutex::new(conn)),
+        })
     }
 
     /// Return the configured SQLite file path.
@@ -27,7 +35,7 @@ impl TradeDatabaseHandler {
 
     /// Initialize schema and indexes for the trades database.
     pub fn init_schema(&self) -> Result<()> {
-        with_conn(self.db_path(), |conn| {
+        self.with_conn(|conn| {
             conn.execute_batch(
                 "
                 -- We create the table if it doesn't exist already.
@@ -70,7 +78,7 @@ impl TradeDatabaseHandler {
     ///
     /// Uses `INSERT OR IGNORE` on transaction hash to keep inserts idempotent.
     pub fn insert_trade(&self, trade: &Trade) -> Result<()> {
-        with_conn(self.db_path(), |conn| {
+        self.with_conn(|conn| {
             let ingested_at = now_ts();
 
             conn.execute(
@@ -98,17 +106,42 @@ impl TradeDatabaseHandler {
             Ok(())
         })
     }
+
+    fn with_conn<T, F>(&self, f: F) -> Result<T>
+    where
+        F: FnOnce(&Connection) -> Result<T>,
+    {
+        let guard = self
+            .conn
+            .lock()
+            .map_err(|_| anyhow!("Trade DB connection mutex poisoned"))?;
+        f(&guard)
+    }
+
+    /// Checkpoint and truncate WAL for this database.
+    pub fn checkpoint_truncate(&self) -> Result<()> {
+        self.with_conn(|conn| {
+            conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+                .context("Failed to checkpoint trades database WAL")?;
+            Ok(())
+        })
+    }
 }
 
 /// SQLite gateway for user activity snapshots.
 #[derive(Debug, Clone)]
 pub struct UserHistoryDatabaseHandler {
     db_path: String,
+    conn: Arc<Mutex<Connection>>,
 }
 
 impl UserHistoryDatabaseHandler {
-    pub fn new(db_path: String) -> Self {
-        Self { db_path }
+    pub fn new(db_path: String) -> Result<Self> {
+        let conn = open(&db_path)?;
+        Ok(Self {
+            db_path,
+            conn: Arc::new(Mutex::new(conn)),
+        })
     }
 
     pub fn db_path(&self) -> &str {
@@ -117,7 +150,7 @@ impl UserHistoryDatabaseHandler {
 
     /// Initialize schema and indexes for user history snapshots.
     pub fn init_schema(&self) -> Result<()> {
-        with_conn(self.db_path(), |conn| {
+        self.with_conn(|conn| {
             conn.execute_batch(
                 "
                 CREATE TABLE IF NOT EXISTS user_activity_snapshots (
@@ -143,7 +176,7 @@ impl UserHistoryDatabaseHandler {
         user_address: &str,
         activity: &[Value],
     ) -> Result<()> {
-        with_conn(self.db_path(), |conn| {
+        self.with_conn(|conn| {
             let raw_json = serde_json::to_string(activity)
                 .context("Failed to serialize user activity snapshot JSON")?;
             let fetched_at = now_ts();
@@ -160,6 +193,26 @@ impl UserHistoryDatabaseHandler {
             Ok(())
         })
     }
+
+    fn with_conn<T, F>(&self, f: F) -> Result<T>
+    where
+        F: FnOnce(&Connection) -> Result<T>,
+    {
+        let guard = self
+            .conn
+            .lock()
+            .map_err(|_| anyhow!("User history DB connection mutex poisoned"))?;
+        f(&guard)
+    }
+
+    /// Checkpoint and truncate WAL for this database.
+    pub fn checkpoint_truncate(&self) -> Result<()> {
+        self.with_conn(|conn| {
+            conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+                .context("Failed to checkpoint user history database WAL")?;
+            Ok(())
+        })
+    }
 }
 
 /// Ensure a SQLite database file exists and is openable.
@@ -167,16 +220,16 @@ impl UserHistoryDatabaseHandler {
 /// Useful for DBs managed outside this Rust service (for example, Python-side
 /// training workflows) where we still want startup validation.
 pub fn ensure_database_file(db_path: &str) -> Result<()> {
-    with_conn(db_path, |_conn| Ok(()))
+    let _conn = open(db_path)?;
+    Ok(())
 }
 
-/// Open/configure a connection and execute one database operation.
-fn with_conn<T, F>(db_path: &str, f: F) -> Result<T>
-where
-    F: FnOnce(&Connection) -> Result<T>,
-{
+/// Checkpoint and truncate WAL for a database path not owned by a handler.
+pub fn checkpoint_database_file(db_path: &str) -> Result<()> {
     let conn = open(db_path)?;
-    f(&conn)
+    conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+        .with_context(|| format!("Failed to checkpoint database WAL at {}", db_path))?;
+    Ok(())
 }
 
 /// Open and configure a SQLite connection for concurrent read/write workload.
