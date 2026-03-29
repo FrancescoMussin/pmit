@@ -14,7 +14,8 @@ use crate::polymarket::Trade;
 pub struct TradeDatabaseHandler {
     // The file path to the SQLite database for trades.
     db_path: String,
-    // The SQLite connection wrapped in an Arc<Mutex<>> to allow for safe concurrent access across threads.
+    // The SQLite connection wrapped in an Arc<Mutex<>> to allow for safe concurrent access across
+    // threads.
     conn: Arc<Mutex<Connection>>,
 }
 
@@ -107,6 +108,7 @@ impl TradeDatabaseHandler {
         })
     }
 
+    /// Helper to access the SQLite connection with proper locking and error handling.
     fn with_conn<T, F>(&self, f: F) -> Result<T>
     where
         F: FnOnce(&Connection) -> Result<T>,
@@ -136,6 +138,7 @@ pub struct UserHistoryDatabaseHandler {
 }
 
 impl UserHistoryDatabaseHandler {
+    /// Create a new handler bound to a database file path.
     pub fn new(db_path: String) -> Result<Self> {
         let conn = open(&db_path)?;
         Ok(Self {
@@ -144,6 +147,7 @@ impl UserHistoryDatabaseHandler {
         })
     }
 
+    /// Return the configured SQLite file path.
     pub fn db_path(&self) -> &str {
         &self.db_path
     }
@@ -194,6 +198,7 @@ impl UserHistoryDatabaseHandler {
         })
     }
 
+    /// Helper to access the SQLite connection with proper locking and error handling.
     fn with_conn<T, F>(&self, f: F) -> Result<T>
     where
         F: FnOnce(&Connection) -> Result<T>,
@@ -239,21 +244,25 @@ fn open(db_path: &str) -> Result<Connection> {
     let conn = Connection::open(db_path)
         .with_context(|| format!("Failed to open SQLite DB at {}", db_path))?;
 
-    // We set things up so that when we query the database and this is blocked by another connection writing to it,
-    // instead of immediately returning an error it will wait for a bit and retry, which helps with concurrency.
+    // We set things up so that when we query the database and this is blocked by another connection
+    // writing to it, instead of immediately returning an error it will wait for a bit and
+    // retry, which helps with concurrency.
     conn.busy_timeout(Duration::from_secs(5))
         .context("Failed to configure SQLite busy timeout")?;
-    // We set things up so that when we write to the database, we first write to a separate WAL file and then later
-    // merge it with the main database file, which allows for better performance and concurrency.
+    // We set things up so that when we write to the database, we first write to a separate WAL file
+    // and then later merge it with the main database file, which allows for better performance
+    // and concurrency.
     conn.pragma_update(None, "journal_mode", "WAL")
         .context("Failed to enable SQLite WAL journal mode")?;
-    // We set things up so that the database is synchronized in a way that balances performance and data safety.
+    // We set things up so that the database is synchronized in a way that balances performance and
+    // data safety.
     conn.pragma_update(None, "synchronous", "NORMAL")
         .context("Failed to configure SQLite synchronous mode")?;
 
     Ok(conn)
 }
 
+/// Ensure the parent directory for a database file exists, creating it if needed.
 fn ensure_parent_dir_exists(db_path: &str) -> Result<()> {
     let path = Path::new(db_path);
     if let Some(parent) = path.parent() {

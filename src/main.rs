@@ -5,8 +5,8 @@ mod data_structures;
 mod database_handler;
 mod exposure;
 mod ingestor;
+mod investigator;
 mod polymarket;
-mod trade_filter;
 
 use anyhow::Result;
 use config::Config;
@@ -15,13 +15,14 @@ use database_handler::{
     TradeDatabaseHandler, UserHistoryDatabaseHandler, checkpoint_database_file,
     ensure_database_file,
 };
+use exposure::ExposureEngine;
 use ingestor::TradeIngestor;
+use investigator::UserActivityProfiler;
 use lru::LruCache;
 use polymarket::Trade;
 use std::num::NonZeroUsize;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{Duration, sleep};
-use trade_filter::TradeFilter;
 
 // we return a Result from main so we can use the `?` operator for easier error handling
 #[tokio::main]
@@ -30,8 +31,10 @@ async fn main() -> Result<()> {
     let config = Config::load()?;
     // 2. Initialize all database handlers and schemas before starting the polling loop.
     let trades_db = TradeDatabaseHandler::new(config.trades_db_path.clone())?;
+    // This will create the database file if it doesn't exist, and set up the necessary tables.
     trades_db.init_schema()?;
-
+    // same here for the user history database, which we use to store snapshots of user activity
+    // profiles when we fetch them after large trades
     let user_history_db = UserHistoryDatabaseHandler::new(config.user_history_db_path.clone())?;
     user_history_db.init_schema()?;
 
@@ -49,6 +52,14 @@ async fn main() -> Result<()> {
     );
     println!("Training DB initialized at {}", config.training_db_path);
     println!(
+        "Exposure routing threshold set to {:.2}",
+        config.exposure_threshold
+    );
+    println!(
+        "Exposure scorer temperature set to {:.2}",
+        config.exposure_temperature
+    );
+    println!(
         "Staleness detector: warn_lag={}s, consecutive_polls={}",
         config.stale_feed_warn_secs, config.stale_feed_consecutive_polls
     );
@@ -65,101 +76,140 @@ async fn main() -> Result<()> {
 
     // 4. Create a shared HTTP Client for the application
     let http_client = reqwest::Client::new();
+    // we initialize the trade ingestor, which is gonna eat up all trades returned by the API and
+    // normalize them into our internal Trade struct, while also persisting the raw JSON and
+    // normalized data to our trades database
     let trade_ingestor = TradeIngestor::new();
-    // we can initialize the trade filter
-    let trade_filter = TradeFilter::new();
+    // we also initialize the exposure engine, which will spawn a Python worker process running the
+    // sentence-BERT model for scoring trade exposure, and set up the communication channels for
+    // sending trade data and receiving exposure scores.
+    let mut exposure_engine = ExposureEngine::new(config.exposure_temperature)?;
+    // finally we initialize the user activity profiler, which handles routed trades and
+    // fetches/persists user activity snapshots for high-value maker profiles.
+    let user_activity_profiler = UserActivityProfiler::new();
 
     // 5. Create our polling interval
     let mut poll_interval = tokio::time::interval(Duration::from_secs(config.poll_interval_secs));
 
     // 6. Background Polling Loop
+
     println!(
-        "Starting global trade Watchdog... Polling every {}s",
+        "Starting global trade monitor... Polling every {}s",
         config.poll_interval_secs
     );
-    // this is just for keeping track of how many consecutive times we've seen a stale feed, so we can log that pattern if it emerges
+    // this is just for keeping track of how many consecutive times we've seen a stale feed, so we
+    // can log that pattern if it emerges
     let mut stale_streak: u32 = 0;
     // We start the polling loop, which will run indefinitely until the program is stopped
     loop {
+        // The `tokio::select!` macro allows us to wait on multiple asynchronous events
+        // simultaneously. In this case, we wait for either a shutdown signal (Ctrl+C) or
+        // the next tick of our polling interval.
         tokio::select! {
             _ = tokio::signal::ctrl_c() => {
                 println!("Shutdown signal received. Flushing SQLite WAL checkpoints...");
                 break;
             }
             // this blocks a new iteration of the loop until the configured interval has passed since the last tick
+            // (because poll_interval.tick() is a future)
             _ = poll_interval.tick() => {
-        println!("--> Polling Data API for new trades...");
+                println!("--> Polling Data API for new trades...");
 
-        // Fetch raw global trades payload and normalize via the ingestor.
-        match polymarket::fetch_global_trades_raw_json(
-            &http_client,
-            &config.polymarket_data_api_url,
-            config.global_trades_limit,
-        )
-        .await
-        {
-            Ok(raw_payload) => {
-                let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &trades_db)
+                // Fetch raw global trades payload and normalize via the ingestor.
+                match polymarket::fetch_global_trades_raw_json(
+                    &http_client,
+                    &config.polymarket_data_api_url,
+                    config.global_trades_limit,
+                )
+                .await
                 {
-                    Ok(batch) => batch,
-                    Err(e) => {
-                        eprintln!("Error ingesting raw trades payload: {:?}", e);
-                        continue;
+                    // first case: we successfully got a response from the API, and we have a raw Value payload to ingest
+                    // normally the api would return a json but fetch_global_trades_raw_json already transformns this into
+                    // a serde_json::Value for us, so we can just pass it to the ingestor without worrying about the HTTP
+                    // details here in main
+                    Ok(raw_payload) => {
+                        // we pass the raw payload to the ingestor, which will parse it, normalize it into our internal Trade struct,
+                        // and also persist the trades to our trades.db
+                        let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &trades_db)
+                        {
+                            // we do some error handling here
+                            Ok(batch) => batch,
+                            Err(e) => {
+                                eprintln!("Error ingesting raw trades payload: {:?}", e);
+                                continue;
+                            }
+                        };
+                        // after ingesting we get the trades back so that we can pass them to the exposure engine for scoring and
+                        // routing
+                        let trades = ingested_batch.into_trades();
+
+                        // First we need to check if the feed is stale.
+                        if trades.is_empty() {
+                            println!(
+                                "    (No trades returned in the last {} seconds)",
+                                config.poll_interval_secs
+                            );
+                            continue;
+                        }
+
+                        stale_streak = update_stale_feed_streak(
+                            &trades,
+                            stale_streak,
+                            config.stale_feed_warn_secs,
+                            config.stale_feed_consecutive_polls,
+                        );
+
+                        let new_trades = extract_unseen_trades(trades, &mut processed_trades);
+                        if new_trades.is_empty() {
+                            println!(
+                                "    (No new trades in the last {} seconds)",
+                                config.poll_interval_secs
+                            );
+                            continue;
+                        }
+
+                        // Ingestor -> Exposure engine
+                        let scored_trades = match exposure_engine.score_batch(new_trades) {
+                            // error handling for the exposure engine, which might fail if the Python worker
+                            // process crashes or returns invalid data
+                            Ok(scored) => scored,
+                            Err(e) => {
+                                eprintln!("Exposure scoring failed for this batch: {:?}", e);
+                                continue;
+                            }
+                        };
+
+                        // Exposure -> Routing (temporary routing policy)
+                        let exposure_threshold = config.exposure_threshold;
+                        let (relevant_trades, deferred_trades) =
+                            exposure::split_by_threshold(scored_trades, exposure_threshold);
+
+                        println!(
+                            "Exposure routing: relevant={}, deferred={} (threshold={:.2})",
+                            relevant_trades.len(),
+                            deferred_trades.len(),
+                            exposure_threshold
+                        );
+
+                        // Routing -> UserActivityProfiler
+                        user_activity_profiler.profile_batch(
+                            relevant_trades,
+                            &mut recent_users,
+                            &http_client,
+                            &user_history_db,
+                            &config,
+                        );
                     }
-                };
-                let trades = ingested_batch.into_trades();
-
-                if trades.is_empty() {
-                    println!(
-                        "    (No trades returned in the last {} seconds)",
-                        config.poll_interval_secs
-                    );
-                    continue;
+                    Err(e) => {
+                        eprintln!("Error fetching global trades: {:?}", e);
+                    }
                 }
-
-                stale_streak = update_stale_feed_streak(
-                    &trades,
-                    stale_streak,
-                    config.stale_feed_warn_secs,
-                    config.stale_feed_consecutive_polls,
-                );
-
-                let new_trades = extract_unseen_trades(trades, &mut processed_trades);
-                if new_trades.is_empty() {
-                    println!(
-                        "    (No new trades in the last {} seconds)",
-                        config.poll_interval_secs
-                    );
-                    continue;
-                }
-
-                // here the ingestor should give the trades to the exposure engine
-
-                // here the exposure engine should give the trades to the routing engine
-
-                // the routing engine should give the relevant trades to the context engine
-
-                // the context engine should give the trades to the final model
-
-                for trade in new_trades {
-                    handle_trade(
-                        &mut recent_users,
-                        &trade_filter,
-                        http_client.clone(),
-                        user_history_db.clone(),
-                        config.clone(),
-                        trade,
-                    );
-                }
-            }
-            Err(e) => {
-                eprintln!("Error fetching global trades: {:?}", e);
-            }
-        }
             }
         }
     }
 
+    // Before shutting down, we want to checkpoint the SQLite databases to ensure all data is
+    // flushed from the WAL files to the main DB files.
     if let Err(e) = trades_db.checkpoint_truncate() {
         eprintln!("Failed to checkpoint trades DB: {:?}", e);
     }
@@ -176,6 +226,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+// helper functions to keep main() cleaner
 fn update_stale_feed_streak(
     trades: &[Trade],
     current_streak: u32,
@@ -231,97 +282,4 @@ fn extract_unseen_trades(
     }
 
     unseen
-}
-
-/// This function processes each trade.
-/// First it prints out the trade details if it passes the trade_filter, then if the trade value is above our configured threshold,
-/// it checks if we've recently profiled this user. If not, it spawns a new asynchronous task to fetch their activity and persist
-/// it to the database, while also printing a preview of their profile to the console.
-fn handle_trade(
-    recent_users: &mut LruCache<WalletAddress, ()>,
-    trade_filter: &TradeFilter,
-    client: reqwest::Client,
-    user_history_db: UserHistoryDatabaseHandler,
-    config: Config,
-    trade: Trade,
-) {
-    let total_value = trade.size * trade.price;
-    let bet_title = trade.title.as_deref().unwrap_or("Unknown Market");
-    let bet_outcome = trade.outcome.as_deref().unwrap_or("N/A");
-    let should_print_trade = trade_filter.should_print_trade(&trade);
-
-    // we print all trades that pass the filter
-    if should_print_trade {
-        println!(
-            "🚨 TRADE: {} [{}] | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2})",
-            bet_title, bet_outcome, trade.size, trade.price, total_value
-        );
-    }
-
-    // Only profile users if their trade value is >= our threshold
-    if total_value >= config.large_trade_threshold {
-        // If we haven't checked this user recently, fetch their history in background
-        if !recent_users.contains(&trade.maker_address) {
-            if should_print_trade {
-                println!(
-                    "  🤑 WHALE ALERT! New large trader detected! Fetching activity profile for {}...",
-                    trade.maker_address
-                );
-            } else {
-                println!(
-                    "  🤑 WHALE ALERT (filtered trade) -> {} [{}] | Value: ${:.2} | Maker: {}",
-                    bet_title, bet_outcome, total_value, trade.maker_address
-                );
-            }
-
-            // Mark them as seen in the cache before spawning a new task to fetch their profile,
-            // so we don't fire off multiple requests for the same user if they have multiple large trades in a short period.
-            recent_users.put(trade.maker_address.clone(), ());
-
-            // we might need the client and the adress outside of this async block, so we clone them here to move into the new task
-            let client_clone = client.clone();
-            let address_clone = trade.maker_address.clone();
-            let user_history_db_clone = user_history_db.clone();
-            // we also clone the relevant config values since we can't move the whole config struct into the async block
-            let api_url = config.polymarket_data_api_url.clone();
-
-            // tokio magic
-            tokio::spawn(async move {
-                match polymarket::fetch_user_activity(
-                    &client_clone,
-                    &api_url,
-                    address_clone.as_str(),
-                )
-                .await
-                {
-                    Ok(activity) => {
-                        if let Err(e) = user_history_db_clone
-                            .insert_user_activity_snapshot(address_clone.as_str(), &activity)
-                        {
-                            eprintln!(
-                                "  -> Failed to persist activity snapshot for {}: {:?}",
-                                address_clone, e
-                            );
-                        }
-
-                        // We get the activity object and convert it to a string,
-                        let json_str = serde_json::to_string(&activity).unwrap_or_default();
-                        // then we preview the first 200 characters in the console log so we can get a
-                        // quick sense of the user's recent activity without overwhelming the terminal with a full JSON dump.
-                        let preview: String = json_str.chars().take(200).collect();
-                        println!(
-                            "  -> Profile fetched for {}! Preview: {}...",
-                            address_clone, preview
-                        );
-                    }
-                    Err(e) => {
-                        eprintln!(
-                            "  -> Failed to fetch activity for {}: {:?}",
-                            address_clone, e
-                        );
-                    }
-                }
-            });
-        }
-    }
 }

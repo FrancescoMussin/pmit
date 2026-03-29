@@ -1,7 +1,8 @@
 use anyhow::{Context, Result};
 use std::env;
 
-/// Struct to hold the application configuration loaded from the .env file and environment variables.
+/// Struct to hold the application configuration loaded from the .env file and environment
+/// variables.
 #[derive(Debug, Clone)]
 pub struct Config {
     /// The base URL for the Polymarket Data API.
@@ -12,6 +13,10 @@ pub struct Config {
     pub global_trades_limit: usize,
     /// The threshold in USD for considering a trade as "large".
     pub large_trade_threshold: f64,
+    /// Exposure score threshold used by routing after exposure scoring.
+    pub exposure_threshold: f64,
+    /// Softmax temperature used by the sentence-BERT exposure scorer.
+    pub exposure_temperature: f64,
     /// The number of seconds after which to warn about a stale feed.
     pub stale_feed_warn_secs: u64,
     /// The number of consecutive polls after which to consider the feed stale.
@@ -45,6 +50,20 @@ impl Config {
             .parse()
             .context("LARGE_TRADE_THRESHOLD must be a valid number")?;
 
+        let exposure_threshold: f64 = env::var("EXPOSURE_THRESHOLD")
+            .unwrap_or_else(|_| "0.60".to_string())
+            .parse()
+            .context("EXPOSURE_THRESHOLD must be a valid number")?;
+
+        let exposure_temperature: f64 = env::var("EXPOSURE_TEMPERATURE")
+            .unwrap_or_else(|_| "0.30".to_string())
+            .parse()
+            .context("EXPOSURE_TEMPERATURE must be a valid number")?;
+
+        if exposure_temperature <= 0.0 {
+            anyhow::bail!("EXPOSURE_TEMPERATURE must be > 0");
+        }
+
         let stale_feed_warn_secs: u64 = env::var("STALE_FEED_WARN_SECS")
             .unwrap_or_else(|_| "90".to_string())
             .parse()
@@ -70,6 +89,8 @@ impl Config {
             poll_interval_secs,
             global_trades_limit,
             large_trade_threshold,
+            exposure_threshold,
+            exposure_temperature,
             stale_feed_warn_secs,
             stale_feed_consecutive_polls,
             trades_db_path,

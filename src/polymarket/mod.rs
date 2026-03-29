@@ -22,7 +22,8 @@ impl PolymarketDataApi {
         Self { client, base_url }
     }
 
-    /// This function fetches the global trades from the Polymarket Data API and returns the raw JSON payload as a `Value`.
+    /// This function fetches the global trades from the Polymarket Data API and returns the raw
+    /// JSON payload as a `Value`.
     pub async fn fetch_global_trades_raw_json(&self, limit: usize) -> Result<Value> {
         let url = self.global_trades_url(limit);
         let res = self
@@ -45,7 +46,7 @@ impl PolymarketDataApi {
 
         Ok(payload)
     }
-    
+
     /// Fetch and decode global trades directly into typed `Trade` records.
     pub async fn fetch_global_trades(&self, limit: usize) -> Result<Vec<Trade>> {
         let payload = self.fetch_global_trades_raw_json(limit).await?;

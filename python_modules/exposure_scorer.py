@@ -4,27 +4,55 @@ Designed for fast batch scoring of trades with continuous [0,1] exposure scores.
 """
 
 import sqlite3
+# allows us to talk to rust via stdin and stdout
+import sys
 import numpy as np
+# to make function signatures clearer
 from typing import List, Tuple
+# we borrow the model from here, and also helper functions
 from sentence_transformers import SentenceTransformer, util
 
 
 class ExposureScorer:
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", temperature: float = 0.30):
         """
         Initialize the scorer with a sentence-BERT model.
         
         Args:
             model_name: HuggingFace model identifier (default is fast and accurate)
+            temperature: Softmax temperature; lower values emphasize nearest matches
         """
+        if temperature <= 0.0:
+            raise ValueError("temperature must be > 0")
+
+        # we load the sentence transformer model specified by model_name.
         self.model = SentenceTransformer(model_name)
+        # we store the temperature for later use in weighting similarities.
+        self.temperature = temperature
+        # we initialize placeholders for training embeddings and scores, which will be loaded from the training database.
         self.training_embeddings = None
         self.training_scores = None
         self._load_training_data()
+
+    def _softmax_weights(self, similarities: np.ndarray) -> np.ndarray:
+        """Numerically stable, temperature-scaled softmax weights."""
+        # divide similarities by temperature to control sharpness of weighting
+        scaled = similarities / self.temperature
+        # we can subtract the max from the scaled similarities to improve numerical stability when we take the exponential.
+        # This prevents potential overflow issues when the similarities are large, which can lead to very large exponentials.
+        # By subtracting the max, we ensure that the largest value in the scaled array is 0, which keeps the exponentials in 
+        # a manageable range.
+        scaled = scaled - np.max(scaled)
+        # we take the exponential of the scaled similarities to get unnormalized weights.
+        exp_scaled = np.exp(scaled)
+        # we normalize the weights by dividing by their sum.
+        return exp_scaled / np.sum(exp_scaled)
     
     def _load_training_data(self, training_db: str = "databases/training.db"):
         """Load and embed all training samples."""
+        # open the connection to the training database.
         conn = sqlite3.connect(training_db)
+        # cursor objects allow us to execute SQL queries and fetch results.
         cursor = conn.cursor()
         cursor.execute("SELECT title, outcome, exposure FROM training_samples")
         rows = cursor.fetchall()
@@ -33,6 +61,7 @@ class ExposureScorer:
         if not rows:
             raise ValueError("No training samples found in training.db")
         
+        # we unzip the rows into separate lists of titles, outcomes, and scores for easier processing.
         titles, outcomes, scores = zip(*rows)
         
         # Combine title and outcome for richer context
@@ -40,9 +69,10 @@ class ExposureScorer:
         
         # Embed all training samples
         self.training_embeddings = self.model.encode(texts, convert_to_tensor=True)
+        # explicitly write down the type for consistency
         self.training_scores = np.array(scores, dtype=np.float32)
         
-        print(f"Loaded {len(texts)} training samples")
+        print(f"Loaded {len(texts)} training samples", file=sys.stderr)
     
     def score_trade(self, title: str, outcome: str) -> float:
         """
@@ -66,11 +96,13 @@ class ExposureScorer:
         
         # Cosine similarity to all training samples
         similarities = util.pytorch_cos_sim(trade_embedding, self.training_embeddings)[0]
+        # numpy only works with tensors in cpu memory so we move it to cpu and convert to numpy array for the weighting step.
         similarities = similarities.cpu().numpy()
         
         # Weighted average: higher weight to more similar examples
-        # Use softmax to convert similarities to weights
-        weights = np.exp(similarities) / np.sum(np.exp(similarities))
+        # Use temperature-scaled softmax to convert similarities to weights
+        weights = self._softmax_weights(similarities)
+        # compute the weighted sum
         score = np.dot(weights, self.training_scores)
         
         return float(score)
@@ -96,80 +128,8 @@ class ExposureScorer:
         # Weighted average for each trade
         scores = []
         for i in range(len(trades)):
-            weights = np.exp(similarities[i].cpu().numpy()) / np.sum(np.exp(similarities[i].cpu().numpy()))
+            weights = self._softmax_weights(similarities[i].cpu().numpy())
             score = float(np.dot(weights, self.training_scores))
             scores.append(score)
         
         return scores
-
-
-def ensure_exposure_score_column(trades_db: str = "databases/trades.db"):
-    """Add exposure_score column to trades table if it doesn't exist."""
-    conn = sqlite3.connect(trades_db)
-    cursor = conn.cursor()
-    
-    # Check if column exists
-    cursor.execute("PRAGMA table_info(trades)")
-    columns = [col[1] for col in cursor.fetchall()]
-    
-    if "exposure_score" not in columns:
-        cursor.execute("ALTER TABLE trades ADD COLUMN exposure_score REAL DEFAULT NULL")
-        conn.commit()
-        print("Added exposure_score column to trades table")
-    
-    conn.close()
-
-
-def score_unscored_trades(trades_db: str = "databases/trades.db", batch_size: int = 100):
-    """
-    Score all trades in trades.db that don't have an exposure score yet.
-    
-    Args:
-        trades_db: Path to trades database
-        batch_size: Number of trades to score at once
-    """
-    ensure_exposure_score_column(trades_db)
-    
-    scorer = ExposureScorer()
-    
-    conn = sqlite3.connect(trades_db)
-    cursor = conn.cursor()
-    
-    # Find unscored trades
-    cursor.execute(
-        "SELECT transaction_hash, title, outcome FROM trades WHERE exposure_score IS NULL"
-    )
-    unscored = cursor.fetchall()
-    
-    if not unscored:
-        print("No unscored trades found.")
-        conn.close()
-        return
-    
-    print(f"Scoring {len(unscored)} trades...")
-    
-    total = len(unscored)
-    for i in range(0, len(unscored), batch_size):
-        batch = unscored[i:i+batch_size]
-        hashes = [row[0] for row in batch]
-        trades = [(row[1], row[2]) for row in batch]
-        
-        # Score batch
-        scores = scorer.score_trades_batch(trades)
-        
-        # Write back to DB
-        for tx_hash, score in zip(hashes, scores):
-            cursor.execute(
-                "UPDATE trades SET exposure_score = ? WHERE transaction_hash = ?",
-                (score, tx_hash)
-            )
-        
-        conn.commit()
-        print(f"  Scored {min(i + batch_size, total)} / {total}")
-    
-    conn.close()
-    print("Done!")
-
-
-if __name__ == "__main__":
-    score_unscored_trades()
