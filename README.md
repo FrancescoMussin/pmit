@@ -98,7 +98,7 @@ TRAINING_DB_PATH=./databases/training.db
 - [x] Async global-trade polling
 - [x] Local data storage
 - [x] Modular pipeline refactor (staged ingest, exposure, routing, context, investigation)
-- [ ] Python-based exposure scoring engine
+- [ ] Python-based exposure scoring engine (deeper dive)
 - [ ] Investigator
 - [ ] Data presentation
 
