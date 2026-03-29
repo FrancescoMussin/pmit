@@ -27,7 +27,7 @@ databases/*.db
 .vscode/
 
 # scripts i used for sanity checks and populating the training.db
-# .scripts/
+scripts
 
 # notes and scratch work for future reference, not needed for the main codebase
 notes_for_future
