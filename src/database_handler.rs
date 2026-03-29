@@ -227,32 +227,33 @@ impl UserHistoryDatabaseHandler {
             .context("Failed to call insert_user_activity_snapshot")
     }
 
-    /// Checkpoint and truncate WAL for this database.
-    pub async fn checkpoint_truncate(&self) -> Result<()> {
+    /// Cleanly close the database by switching from WAL to DELETE mode.
+    /// This merges the WAL file into the main DB and then deletes the WAL file.
+    pub async fn shutdown_cleanly(&self) -> Result<()> {
         self.conn
             .call(|conn| {
-                conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
-                    .context("Failed to checkpoint user history database WAL")?;
+                conn.pragma_update(None, "journal_mode", "DELETE")
+                    .context("Failed to switch to DELETE journal mode for user history shutdown")?;
                 Ok::<(), anyhow::Error>(())
             })
             .await
             .map_err(|e| anyhow!(e))
-            .context("Failed to call checkpoint_truncate for user history")
+            .context("Failed to call shutdown_cleanly for user history")
     }
 }
-
 impl TradeDatabaseHandler {
-    /// Checkpoint and truncate WAL for this database.
-    pub async fn checkpoint_truncate(&self) -> Result<()> {
+    /// Cleanly close the database by switching from WAL to DELETE mode.
+    /// This merges the WAL file into the main DB and then deletes the WAL file.
+    pub async fn shutdown_cleanly(&self) -> Result<()> {
         self.conn
             .call(|conn| {
-                conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
-                    .context("Failed to checkpoint trades database WAL")?;
+                conn.pragma_update(None, "journal_mode", "DELETE")
+                    .context("Failed to switch to DELETE journal mode for shutdown")?;
                 Ok::<(), anyhow::Error>(())
             })
             .await
             .map_err(|e| anyhow!(e))
-            .context("Failed to call checkpoint_truncate for trades")
+            .context("Failed to call shutdown_cleanly for trades")
     }
 }
 
@@ -265,17 +266,17 @@ pub async fn ensure_database_file(db_path: &str) -> Result<()> {
     Ok(())
 }
 
-/// Checkpoint and truncate WAL for a database path not owned by a handler.
-pub async fn checkpoint_database_file(db_path: &str) -> Result<()> {
+/// Cleanly close a database file path not owned by a handler.
+pub async fn shutdown_database_cleanly(db_path: &str) -> Result<()> {
     let conn = open(db_path).await?;
     conn.call(|conn| {
-        conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
-            .context("Failed to checkpoint database WAL")?;
+        conn.pragma_update(None, "journal_mode", "DELETE")
+            .context("Failed to switch to DELETE journal mode for shutdown")?;
         Ok::<(), anyhow::Error>(())
     })
     .await
     .map_err(|e| anyhow!(e))
-    .context("Failed to call checkpoint on database file")
+    .context("Failed to call shutdown_cleanly on database file")
 }
 
 /// Open and configure a SQLite connection for concurrent read/write workload.

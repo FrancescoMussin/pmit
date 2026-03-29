@@ -1,25 +1,17 @@
 #![allow(warnings)]
 
-mod config;
-mod data_structures;
-mod database_handler;
-mod exposure;
-mod ingestor;
-mod investigator;
-mod polymarket;
-
 use anyhow::{Context, Result};
-use config::Config;
-use data_structures::WalletAddress;
-use database_handler::{
-    TradeDatabaseHandler, UserHistoryDatabaseHandler, checkpoint_database_file,
+use lru::LruCache;
+use pmit::config::Config;
+use pmit::data_structures::WalletAddress;
+use pmit::database_handler::{
+    TradeDatabaseHandler, UserHistoryDatabaseHandler, shutdown_database_cleanly,
     ensure_database_file,
 };
-use exposure::ExposureEngine;
-use ingestor::TradeIngestor;
-use investigator::UserActivityProfiler;
-use lru::LruCache;
-use polymarket::Trade;
+use pmit::exposure::ExposureEngine;
+use pmit::ingestor::TradeIngestor;
+use pmit::investigator::UserActivityProfiler;
+use pmit::polymarket::{self, Trade};
 use std::num::NonZeroUsize;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{Duration, sleep};
@@ -154,7 +146,7 @@ async fn main() -> Result<()> {
             // Exposure -> Routing (temporary routing policy)
             let exposure_threshold = config_clone.exposure_threshold;
             let (relevant_trades, deferred_trades) =
-                exposure::split_by_threshold(scored_trades, exposure_threshold);
+                pmit::exposure::split_by_threshold(scored_trades, exposure_threshold);
 
             tracing::info!(
                 "Exposure routing: relevant={}, deferred={} (threshold={:.2})",
@@ -241,18 +233,18 @@ async fn main() -> Result<()> {
     // 2. Wait for the processing task to finish its final batch.
     let _ = processing_handle.await;
 
-    // Before shutting down, we want to checkpoint the SQLite databases to ensure all data is
-    // flushed from the WAL files to the main DB files.
-    if let Err(e) = trades_db.checkpoint_truncate().await {
-        tracing::error!("Failed to checkpoint trades DB: {:?}", e);
+    // Before shutting down, we want to switch the database to DELETE mode,
+    // which flushes all WAL data and removes the temporary WAL files.
+    if let Err(e) = trades_db.shutdown_cleanly().await {
+        tracing::error!("Failed to clean shutdown trades DB: {:?}", e);
     }
 
-    if let Err(e) = user_history_db.checkpoint_truncate().await {
-        tracing::error!("Failed to checkpoint user history DB: {:?}", e);
+    if let Err(e) = user_history_db.shutdown_cleanly().await {
+        tracing::error!("Failed to clean shutdown user history DB: {:?}", e);
     }
 
-    if let Err(e) = checkpoint_database_file(&config.training_db_path).await {
-        tracing::error!("Failed to checkpoint training DB: {:?}", e);
+    if let Err(e) = shutdown_database_cleanly(&config.training_db_path).await {
+        tracing::error!("Failed to clean shutdown training DB: {:?}", e);
     }
 
     tracing::info!("Shutdown checkpoint complete.");

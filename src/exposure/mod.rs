@@ -50,7 +50,7 @@ struct WorkerReadyResponse {
 /// true}` on stdout when it is ready to receive requests.
 pub struct ExposureEngine {
     /// Handle for the worker process
-    worker_child: Child,
+    _worker_child: Child,
     /// Stdin handle for sending requests to the worker
     worker_stdin: ChildStdin,
     /// Stdout handle for reading responses from the worker, the BufReader makes reading more
@@ -147,7 +147,7 @@ impl ExposureEngine {
         }
 
         Ok(Self {
-            worker_child: child,
+            _worker_child: child,
             worker_stdin,
             worker_stdout,
         })
