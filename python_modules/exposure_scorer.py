@@ -50,16 +50,31 @@ class ExposureScorer:
     
     def _load_training_data(self, training_db: str = "databases/training.db"):
         """Load and embed all training samples."""
+        import os
+        if not os.path.exists(training_db):
+            print(f"[exposure_scorer] WARNING: Training database not found at {training_db}. All trades will receive 0.0 exposure.", file=sys.stderr)
+            self.training_embeddings = None
+            self.training_scores = np.array([], dtype=np.float32)
+            return
+
         # open the connection to the training database.
         conn = sqlite3.connect(training_db)
         # cursor objects allow us to execute SQL queries and fetch results.
         cursor = conn.cursor()
-        cursor.execute("SELECT title, outcome, exposure FROM training_samples")
-        rows = cursor.fetchall()
-        conn.close()
+        try:
+            cursor.execute("SELECT title, outcome, exposure FROM training_samples")
+            rows = cursor.fetchall()
+        except sqlite3.OperationalError:
+            print(f"[exposure_scorer] WARNING: training_samples table not found in {training_db}.", file=sys.stderr)
+            rows = []
+        finally:
+            conn.close()
         
         if not rows:
-            raise ValueError("No training samples found in training.db")
+            print(f"[exposure_scorer] WARNING: No training samples found. All trades will receive 0.0 exposure.", file=sys.stderr)
+            self.training_embeddings = None
+            self.training_scores = np.array([], dtype=np.float32)
+            return
         
         # we unzip the rows into separate lists of titles, outcomes, and scores for easier processing.
         titles, outcomes, scores = zip(*rows)
@@ -86,7 +101,7 @@ class ExposureScorer:
         Returns:
             Exposure score in [0, 1]
         """
-        if not title or not outcome:
+        if not title or not outcome or self.training_embeddings is None:
             return 0.0
         
         text = f"On the market '{title}' I am betting '{outcome}'".strip()
@@ -115,6 +130,9 @@ class ExposureScorer:
         Returns:
             List of exposure scores in [0, 1]
         """
+        if self.training_embeddings is None:
+            return [0.0] * len(trades)
+
         texts = [f"On the market '{title}' I am betting '{outcome}'".strip() for title, outcome in trades]
         
         # Embed all at once (batched)
