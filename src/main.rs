@@ -24,9 +24,18 @@ use std::num::NonZeroUsize;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{Duration, sleep};
 
+use tracing_subscriber::EnvFilter;
+
 // we return a Result from main so we can use the `?` operator for easier error handling
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(tracing::Level::INFO.into())
+                .from_env_lossy()
+        )
+        .init();
     // 1. We load the configuration
     let config = Config::load()?;
     // 2. Initialize all database handlers and schemas before starting the polling loop.
@@ -41,25 +50,25 @@ async fn main() -> Result<()> {
     // Training data is managed by Python workflows; we only ensure the DB file exists.
     ensure_database_file(&config.training_db_path)?;
 
-    println!(
+    tracing::info!(
         "Loaded config! Polling Global Trades API every {} seconds (limit={})",
         config.poll_interval_secs, config.global_trades_limit
     );
-    println!("Trades DB initialized at {}", config.trades_db_path);
-    println!(
+    tracing::info!("Trades DB initialized at {}", config.trades_db_path);
+    tracing::info!(
         "User history DB initialized at {}",
         config.user_history_db_path
     );
-    println!("Training DB initialized at {}", config.training_db_path);
-    println!(
+    tracing::info!("Training DB initialized at {}", config.training_db_path);
+    tracing::info!(
         "Exposure routing threshold set to {:.2}",
         config.exposure_threshold
     );
-    println!(
+    tracing::info!(
         "Exposure scorer temperature set to {:.2}",
         config.exposure_temperature
     );
-    println!(
+    tracing::info!(
         "Staleness detector: warn_lag={}s, consecutive_polls={}",
         config.stale_feed_warn_secs, config.stale_feed_consecutive_polls
     );
@@ -93,7 +102,7 @@ async fn main() -> Result<()> {
 
     // 6. Background Polling Loop
 
-    println!(
+    tracing::info!(
         "Starting global trade monitor... Polling every {}s",
         config.poll_interval_secs
     );
@@ -107,13 +116,13 @@ async fn main() -> Result<()> {
         // the next tick of our polling interval.
         tokio::select! {
             _ = tokio::signal::ctrl_c() => {
-                println!("Shutdown signal received. Flushing SQLite WAL checkpoints...");
+                tracing::info!("Shutdown signal received. Flushing SQLite WAL checkpoints...");
                 break;
             }
             // this blocks a new iteration of the loop until the configured interval has passed since the last tick
             // (because poll_interval.tick() is a future)
             _ = poll_interval.tick() => {
-                println!("--> Polling Data API for new trades...");
+                tracing::debug!("--> Polling Data API for new trades...");
 
                 // Fetch raw global trades payload and normalize via the ingestor.
                 match polymarket::fetch_global_trades_raw_json(
@@ -135,7 +144,7 @@ async fn main() -> Result<()> {
                             // we do some error handling here
                             Ok(batch) => batch,
                             Err(e) => {
-                                eprintln!("Error ingesting raw trades payload: {:?}", e);
+                                tracing::error!("Error ingesting raw trades payload: {:?}", e);
                                 continue;
                             }
                         };
@@ -145,7 +154,7 @@ async fn main() -> Result<()> {
 
                         // First we need to check if the feed is stale.
                         if trades.is_empty() {
-                            println!(
+                            tracing::debug!(
                                 "    (No trades returned in the last {} seconds)",
                                 config.poll_interval_secs
                             );
@@ -161,7 +170,7 @@ async fn main() -> Result<()> {
 
                         let new_trades = extract_unseen_trades(trades, &mut processed_trades);
                         if new_trades.is_empty() {
-                            println!(
+                            tracing::debug!(
                                 "    (No new trades in the last {} seconds)",
                                 config.poll_interval_secs
                             );
@@ -174,7 +183,7 @@ async fn main() -> Result<()> {
                             // process crashes or returns invalid data
                             Ok(scored) => scored,
                             Err(e) => {
-                                eprintln!("Exposure scoring failed for this batch: {:?}", e);
+                                tracing::error!("Exposure scoring failed for this batch: {:?}", e);
                                 continue;
                             }
                         };
@@ -184,7 +193,7 @@ async fn main() -> Result<()> {
                         let (relevant_trades, deferred_trades) =
                             exposure::split_by_threshold(scored_trades, exposure_threshold);
 
-                        println!(
+                        tracing::info!(
                             "Exposure routing: relevant={}, deferred={} (threshold={:.2})",
                             relevant_trades.len(),
                             deferred_trades.len(),
@@ -201,7 +210,7 @@ async fn main() -> Result<()> {
                         );
                     }
                     Err(e) => {
-                        eprintln!("Error fetching global trades: {:?}", e);
+                        tracing::error!("Error fetching global trades: {:?}", e);
                     }
                 }
             }
@@ -211,18 +220,18 @@ async fn main() -> Result<()> {
     // Before shutting down, we want to checkpoint the SQLite databases to ensure all data is
     // flushed from the WAL files to the main DB files.
     if let Err(e) = trades_db.checkpoint_truncate() {
-        eprintln!("Failed to checkpoint trades DB: {:?}", e);
+        tracing::error!("Failed to checkpoint trades DB: {:?}", e);
     }
 
     if let Err(e) = user_history_db.checkpoint_truncate() {
-        eprintln!("Failed to checkpoint user history DB: {:?}", e);
+        tracing::error!("Failed to checkpoint user history DB: {:?}", e);
     }
 
     if let Err(e) = checkpoint_database_file(&config.training_db_path) {
-        eprintln!("Failed to checkpoint training DB: {:?}", e);
+        tracing::error!("Failed to checkpoint training DB: {:?}", e);
     }
 
-    println!("Shutdown checkpoint complete.");
+    tracing::info!("Shutdown checkpoint complete.");
     Ok(())
 }
 
@@ -245,13 +254,13 @@ fn update_stale_feed_streak(
 
     if lag_secs >= stale_feed_warn_secs {
         let next_streak = current_streak + 1;
-        eprintln!(
+        tracing::warn!(
             "[STALE FEED] newest trade is {}s old (threshold={}s, streak={})",
             lag_secs, stale_feed_warn_secs, next_streak
         );
 
         if next_streak >= stale_feed_consecutive_polls {
-            eprintln!(
+            tracing::error!(
                 "[STALE FEED] sustained staleness detected. This often indicates CDN/API cache windows."
             );
         }
@@ -259,7 +268,7 @@ fn update_stale_feed_streak(
         next_streak
     } else {
         if current_streak > 0 {
-            println!(
+            tracing::info!(
                 "Feed freshness recovered after {} stale poll(s). Current lag={}s",
                 current_streak, lag_secs
             );

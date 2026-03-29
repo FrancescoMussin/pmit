@@ -57,17 +57,26 @@ impl UserActivityProfiler {
         let bet_title = trade.title.as_deref().unwrap_or("Unknown Market");
         let bet_outcome = trade.outcome.as_deref().unwrap_or("N/A");
 
-        println!(
-            "🚨 TRADE: {} [{}] | Exposure: {:.3} | Share Size: {:.2} @ Price: ${:.2} (Value: ${:.2})",
-            bet_title, bet_outcome, exposure_score, trade.size, trade.price, total_value
+        tracing::info!(
+            "\n\
+            ======================================= 🚨 TRADE 🚨 =======================================\n\
+            Market:   {}\n\
+            Outcome:  {}\n\
+            Exposure: {:.3}\n\
+            Value:    ${:.2} ({:.2} shares @ ${:.2})\n\
+            ===========================================================================================",
+            bet_title, bet_outcome, exposure_score, total_value, trade.size, trade.price
         );
 
         // Only profile users if their trade value is >= our threshold.
         if total_value >= config.large_trade_threshold {
             // If we haven't checked this user recently, fetch their history in background.
             if !recent_users.contains(&trade.maker_address) {
-                println!(
-                    "  📊 PROFILER ALERT! High-value routed trade by {}. Fetching activity profile...",
+                tracing::info!(
+                    "\n\
+                    >> 📊 PROFILER ALERT!\n\
+                    >> High-value routed trade by: {}\n\
+                    >> Fetching activity profile...",
                     trade.maker_address
                 );
 
@@ -98,8 +107,11 @@ impl UserActivityProfiler {
                             if let Err(e) = user_history_db_clone
                                 .insert_user_activity_snapshot(address_clone.as_str(), &activity)
                             {
-                                eprintln!(
-                                    "  -> Failed to persist activity snapshot for {}: {:?}",
+                                tracing::error!(
+                                    "\n\
+                                    >> ❌ PERSIST ERROR\n\
+                                    >> Address: {}\n\
+                                    >> Error:   {:?}",
                                     address_clone, e
                                 );
                             }
@@ -109,14 +121,20 @@ impl UserActivityProfiler {
                             // to avoid overwhelming the logs
                             let json_str = serde_json::to_string(&activity).unwrap_or_default();
                             let preview: String = json_str.chars().take(200).collect();
-                            println!(
-                                "  -> Profile fetched for {}! Preview: {}...",
+                            tracing::info!(
+                                "\n\
+                                >> ✅ PROFILE FETCHED\n\
+                                >> Address: {}\n\
+                                >> Preview: {}...",
                                 address_clone, preview
                             );
                         }
                         Err(e) => {
-                            eprintln!(
-                                "  -> Failed to fetch activity for {}: {:?}",
+                            tracing::error!(
+                                "\n\
+                                >> ❌ FETCH ERROR\n\
+                                >> Address: {}\n\
+                                >> Error:   {:?}",
                                 address_clone, e
                             );
                         }

@@ -1,5 +1,5 @@
 [package]
-name = "PMIT"
+name = "pmit"
 version = "0.1.0"
 edition = "2024"
 
@@ -13,3 +13,5 @@ anyhow = "1.0.86"
 lru = "0.16.3"
 futures-util = "0.3.32"
 rusqlite = { version = "0.37.0", features = ["bundled"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
