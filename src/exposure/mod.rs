@@ -2,8 +2,10 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Stdio;
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
+use tokio::time::timeout;
 
 use crate::polymarket::Trade;
 
@@ -113,11 +115,14 @@ impl ExposureEngine {
         let mut saw_ready = false;
         for _ in 0..10 {
             let mut line = String::new();
-            // we read the worker's stdout line and append it to the line buffer
-            worker_stdout
-                .read_line(&mut line)
+            // we read the worker's stdout line with a 10-second timeout
+            if timeout(Duration::from_secs(10), worker_stdout.read_line(&mut line))
                 .await
-                .context("Failed to read readiness signal from exposure worker")?;
+                .is_err()
+            {
+                tracing::warn!("Readiness signal from exposure worker timed out, retrying...");
+                continue;
+            }
 
             // check if the line is empty (remove \n's and whitspaces)
             if line.trim().is_empty() {
@@ -190,12 +195,11 @@ impl ExposureEngine {
             .flush()
             .await
             .context("Failed to flush exposure worker stdin")?;
-        // we need a mutable string buffer to read the worker's response line into
+        // read a line from the worker's stdout with a 5-second timeout.
         let mut response_line = String::new();
-        // read a line from the worker's stdout.
-        self.worker_stdout
-            .read_line(&mut response_line)
+        tokio::time::timeout(Duration::from_secs(5), self.worker_stdout.read_line(&mut response_line))
             .await
+            .context("Exposure worker response timed out")?
             .context("Failed to read response from exposure worker")?;
 
         // check if the line is empty

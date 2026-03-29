@@ -19,6 +19,9 @@ The challenge is to be able, from only the polymarket APIs, to detect people usi
 people partecipating on the other end of the bet. There are many components to this, since not all markets are
 exposed to insider trading (for example the ones about city temperatures) and since insider traders can use different strategies.
 
+> [!IMPORTANT]
+> **Strategy Focus**: The current ingestion pipeline is intentionally restricted to **"buy" trades**. This simplified focus allows for more targeted anomaly detection of insider "entry" patterns while avoiding the increased complexity of mapping strategic selling (front-running) in early development phases.
+
 
 ---
 
