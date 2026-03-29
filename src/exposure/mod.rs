@@ -1,13 +1,14 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::io::{BufRead, BufReader, Write};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use std::path::Path;
-use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::process::Stdio;
+use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 
 use crate::polymarket::Trade;
 
-// The model we use for computing exposure scores is in a python worker process, so we need to
-// define the communication protocol and the Rust-side engine to manage it.
+// The model we use for computing exposure scores is in an asynchronous python worker process, so we need to
+// define the communication protocol and the Rust-side engine to manage it using tokio::process.
 
 /// Trade enriched with a continuous exposure score in [0.0, 1.0].
 #[derive(Debug, Clone)]
@@ -55,7 +56,7 @@ pub struct ExposureEngine {
 }
 
 impl ExposureEngine {
-    /// Initializes the exposure engine by starting the Python worker process and waiting for its
+    /// Asynchronously initializes the exposure engine by starting the Python worker process and awaiting its
     /// readiness signal. The `exposure_temperature` parameter is passed to the worker as an
     /// environment variable to configure the softmax temperature used in scoring. The method
     /// returns an instance of `ExposureEngine` with the communication channels set up and ready
@@ -64,7 +65,7 @@ impl ExposureEngine {
     /// `python_modules/exposure_worker.py` and should be executable with either `python3` or a
     /// virtual environment Python at `.venv/bin/python`. The worker should print a JSON line with
     /// `{"ready": true}` to stdout when it is ready to receive scoring requests.  
-    pub fn new(exposure_temperature: f64) -> Result<Self> {
+    pub async fn new(exposure_temperature: f64) -> Result<Self> {
         // we check if a python virtual environment exists at .venv/bin/python, otherwise we fall
         // back to python3 in PATH
         let python_bin = if Path::new(".venv/bin/python").exists() {
@@ -83,6 +84,7 @@ impl ExposureEngine {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
+            .kill_on_drop(true)
             .spawn()
             .context("Failed to start Python exposure worker")?;
 
@@ -112,6 +114,7 @@ impl ExposureEngine {
             // we read the worker's stdout line and append it to the line buffer
             worker_stdout
                 .read_line(&mut line)
+                .await
                 .context("Failed to read readiness signal from exposure worker")?;
 
             // check if the line is empty (remove \n's and whitspaces)
@@ -142,7 +145,7 @@ impl ExposureEngine {
     }
 
     /// Score a batch of trades using the sentence-BERT Python worker.
-    pub fn score_batch(&mut self, trades: Vec<Trade>) -> Result<Vec<ScoredTrade>> {
+    pub async fn score_batch(&mut self, trades: Vec<Trade>) -> Result<Vec<ScoredTrade>> {
         // If there are no trades to score, we can skip the worker roundtrip and just return an
         // empty vector. This also avoids potential issues with the worker if it doesn't handle
         // empty input gracefully.
@@ -168,7 +171,9 @@ impl ExposureEngine {
             .context("Failed to serialize exposure scoring request")?;
 
         // write the JSON payload to the worker's stdin, followed by a newline.
-        writeln!(self.worker_stdin, "{}", payload)
+        let mut msg = payload;
+        msg.push('\n');
+        self.worker_stdin.write_all(msg.as_bytes()).await
             .context("Failed to write request to exposure worker")?;
         // since many i/o streams are buffered, we need to flush after writing to ensure the worker
         // receives the data immediately, rather than waiting for the buffer to fill up or the
@@ -177,12 +182,14 @@ impl ExposureEngine {
         // to the worker right away.
         self.worker_stdin
             .flush()
+            .await
             .context("Failed to flush exposure worker stdin")?;
         // we need a mutable string buffer to read the worker's response line into
         let mut response_line = String::new();
         // read a line from the worker's stdout.
         self.worker_stdout
             .read_line(&mut response_line)
+            .await
             .context("Failed to read response from exposure worker")?;
 
         // check if the line is empty
@@ -221,21 +228,7 @@ impl ExposureEngine {
     }
 }
 
-// We implement Drop for ExposureEngine to ensure that when an instance of ExposureEngine goes out
-// of scope or is otherwise dropped, we clean up the worker process by killing it and waiting for it
-// to exit. This is important to prevent orphaned processes and ensure that system resources are
-// freed properly.
-impl Drop for ExposureEngine {
-    // When the ExposureEngine is dropped, we attempt to kill the worker process and wait for it to
-    // exit. We ignore any errors that occur during this cleanup, as we are already in the
-    // process of dropping and don't want to panic or cause issues if the worker has already
-    // exited or cannot be killed for some reason.
-    fn drop(&mut self) {
-        let _ = self.worker_child.kill();
-        let _ = self.worker_child.wait();
-    }
-}
-
+// Custom Drop is removed since kill_on_drop(true) securely manages the child's lifetime.
 /// Split scored trades into relevant/non-relevant buckets for routing.
 pub fn split_by_threshold(
     scored_trades: Vec<ScoredTrade>,

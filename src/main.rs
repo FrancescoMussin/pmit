@@ -89,10 +89,10 @@ async fn main() -> Result<()> {
     // normalize them into our internal Trade struct, while also persisting the raw JSON and
     // normalized data to our trades database
     let trade_ingestor = TradeIngestor::new();
-    // we also initialize the exposure engine, which will spawn a Python worker process running the
+    // we also asynchronously initialize the exposure engine, which will spawn a Python worker process running the
     // sentence-BERT model for scoring trade exposure, and set up the communication channels for
     // sending trade data and receiving exposure scores.
-    let mut exposure_engine = ExposureEngine::new(config.exposure_temperature)?;
+    let mut exposure_engine = ExposureEngine::new(config.exposure_temperature).await?;
     // finally we initialize the user activity profiler, which handles routed trades and
     // fetches/persists user activity snapshots for high-value maker profiles.
     let user_activity_profiler = UserActivityProfiler::new();
@@ -178,7 +178,7 @@ async fn main() -> Result<()> {
                         }
 
                         // Ingestor -> Exposure engine
-                        let scored_trades = match exposure_engine.score_batch(new_trades) {
+                        let scored_trades = match exposure_engine.score_batch(new_trades).await {
                             // error handling for the exposure engine, which might fail if the Python worker
                             // process crashes or returns invalid data
                             Ok(scored) => scored,
