@@ -1,14 +1,17 @@
 # 🔍 PMIT
-### An open source prediction market anomaly detection system
+### An open-source prediction market anomaly detection system
+
+> [!NOTE]
+> **Project Status: Under Active Development (WIP)**
+> This tool is currently in its early development phase. The core ingestion and ML scoring pipeline is functional, but deep-dive profiling and visualization modules are still being built.
 
 ---
 
-## What is this?
+## Motivation & Engineering Goals
 
-PMIT is a real-time data pipeline and anomaly detection system for prediction markets (starting with Polymarket). It currently polls the global trades feed, looks at markets exposed to insider traders, and tries to spot suspicious actors
+PMIT was developed to explore the intersection of **high-throughput asynchronous systems** and **real-time machine learning inference**. Using Polymarket as a live data source, the project implements a robust pipeline capable of digesting thousands of trades per minute while performing semantic analysis to identify potential insider activity.
 
-It's just a fun project that I used to learn a couple of things
----
+The core engineering focus was on building a **resilient, decoupled architecture** that maintains ingestion integrity even when downstream analysis (ML scoring) experiences latency.
 
 ## Challenge
 
@@ -21,19 +24,38 @@ exposed to insider trading (for example the ones about city temperatures) and si
 
 ## Architecture
 
-PMIT uses a **fully asynchronous, decoupled pipeline** to ensure real-time performance even under heavy market loads:
+PMIT uses a **fully asynchronous, decoupled pipeline** to ensure real-time performance even under heavy market loads. 
+
+```mermaid
+graph TD
+    API[Polymarket Data API] -->|Poll| Loop[Main Async Loop]
+    Loop -->|Raw JSON| DB1[(Trades DB)]
+    Loop -->|MPSC Channel| Worker[Background Worker]
+    
+    subgraph Analysis Pipeline
+        Worker -->|Batch| ML[Python ML Engine]
+        ML -->|Score| Router{Exposure Router}
+        Router -->|> Threshold| Profiler[User Activity Profiler]
+        Router -->|< Threshold| Log[Deferred Log]
+    end
+    
+    Profiler -->|Fetch| Hist[User History API]
+    Profiler -->|Batch| DB2[(User History DB)]
+    
+    style ML fill:#f96,stroke:#333,stroke-width:2px
+    style Loop fill:#69f,stroke:#333,stroke-width:2px
+```
 
 1. **Ingest (Fast Path)**
    - The main loop polls the Polymarket Data API and immediately persists raw trades to SQLite using **batch transactions**.
-   - Decoupled via **MPSC channels** to ensure polling is never blocked by downstream logic.
+   - Decoupled via **MPSC channels** to ensure polling is never blocked by downstream analysis.
 
-2. **Exposure (Background Path)**
-   - A dedicated processing task receives trades and scores them using a **Python-based sentence-BERT** model.
-   - High-exposure trades (e.g., political insiders, sensitive event markets) are prioritized.
+2. **Analysis (ML Scoring)**
+   - A dedicated background task manages a persistent **Python worker process** running a **sentence-BERT** model.
+   - Communication via JSON-over-pipes avoids the overhead of repeated process spawning.
 
-3. **Route & Profile**
-   - Trades are filtered by exposure threshold.
-   - Relevant trades trigger a **User Activity Profiler** that fetches and persists maker history snapshots for anomaly detection.
+3. **Routing & Profiling (Planned)**
+   - Trades are filtered by an exposure threshold. High-exposure trades will trigger the **User Activity Profiler**, which is currently being architected to fetch maker history snapshots for deep-dive anomaly detection.
 
 ---
 
