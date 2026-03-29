@@ -30,4 +30,4 @@ databases/*.db
 # .scripts/
 
 # notes and scratch work for future reference, not needed for the main codebase
-./notes_for_future
+notes_for_future
