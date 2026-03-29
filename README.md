@@ -1,71 +1,43 @@
 # 🔍 PMIT
-### An open-source watchdog for prediction market manipulation
-
-> *"Prediction markets claim to aggregate truth. We check if that's actually true."*
+### An open source prediction market anomaly detection system
 
 ---
 
 ## What is this?
 
-PMIT is a real-time data pipeline and anomaly detection system for prediction markets (starting with Polymarket). It currently polls the global trades feed, profiles notable trader activity, and is evolving toward statistically robust detection with reproducible public outputs.
+PMIT is a real-time data pipeline and anomaly detection system for prediction markets (starting with Polymarket). It currently polls the global trades feed, looks at markets exposed to insider traders, and tries to spot suspicious actors
 
-The goal is not to profit from manipulation — it's to document it, understand it, and make it visible to the public.
-
+It's just a fun project that i used to learn a couple of things
 ---
 
-## Motivation
+## Challenge
 
-Prediction markets are largely unregulated. Proponents claim they efficiently aggregate information. Critics argue they attract manipulation and can influence the very events they predict, particularly in political contexts.
+The challenge is to be able, from only the polymarket apis, to detect people using their insider knowledge against
+people partecipating on the other end of the bet. There are many components to this, since not all markets are
+exposed to insider trading (for example the one about city temperatures) and since insider traders can use different strategies.
 
-We think the truth is empirical, not philosophical. So we're measuring it.
-
-Specifically, we want to know:
-- Do odds move *before* public information breaks?
-- Are there accounts with win rates inconsistent with random chance?
-- Are there coordinated large bets that precede event resolutions?
-
-If the answer to any of these is yes, average participants deserve to know.
 
 ---
 
 ## Architecture
 
-```
-Polymarket Data API
-      │
-      ▼
-┌─────────────────────┐
-│  Rust + Tokio       │  ← async global-trade polling and ingestion
-│  Ingestion Pipeline │
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Local SQLite / DB  │  ← raw global trades + account activity data
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Anomaly Detection  │  ← statistical flagging (ANOVA, clustering, Bayesian)
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│  Public Dashboard   │  ← flagged events, suspicious accounts, open dataset
-└─────────────────────┘
-```
+Here's a rough outline of how this is all intended to work. Keep in mind that this is subject to change.
 
----
+1. Ingest
+- Collect trades in real time from the selected source and store raw events so no information is lost.
 
-## Detection Signals
+2. Exposure
+- Perform a fast first-pass assessment (for example on market text/exposure) to prioritize what needs deeper analysis.
 
-| Signal                         | Method                                   | Status      |
-|--------------------------------|------------------------------------------|-------------|
-| Large-trade whale profiling    | Threshold trigger + recent-user cache    | In Progress |
-| Odds moving before news        | News feed lag analysis                   | Planned     |
-| Large coordinated bets         | Clustering on bet timing + size          | Planned     |
-| Anomalous account win rates    | Statistical testing vs. baseline         | Planned     |
-| Combined suspicion score       | Weighted composite signal                | Planned     |
+3. Route
+- Apply policy decisions to decide which trades move forward immediately, which are deferred, and which are ignored for now.
+
+4. Context
+- Gather additional context (such as maker behavior/history and related market signals) for trades selected for deeper analysis.
+
+5. Investigate
+- Perform an additional analysis on the additional data to decide if the selected trades are suspicious or not.
+
 
 ---
 
@@ -75,16 +47,31 @@ Polymarket Data API
 - **reqwest** — HTTP client for Polymarket Data API
 - **SQLite / serde** — local storage and deserialization
 - **Python (pandas, scipy)** — statistical analysis and anomaly detection
-- **Quarto / matplotlib** — reproducible reports and visualizations
 
 ---
 
 ## Getting Started
 
+
+Clone the repository and build the Rust backend:
+
 ```bash
 git clone https://github.com/yourorg/PMIT
 cd pmit
 cargo build
+```
+
+Set up the Python environment (for exposure scoring and analysis):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Then run the pipeline:
+
+```bash
 cargo run
 ```
 
@@ -92,9 +79,11 @@ Configuration is handled via a `.env` file:
 
 ```env
 POLYMARKET_DATA_API_URL=https://data-api.polymarket.com
-POLL_INTERVAL_SECS=10
-GLOBAL_TRADES_LIMIT=1000
+POLL_INTERVAL_SECS=60
+GLOBAL_TRADES_LIMIT=10000
 LARGE_TRADE_THRESHOLD=1000.0
+EXPOSURE_THRESHOLD=0.6
+EXPOSURE_TEMPERATURE=0.05
 TRADES_DB_PATH=./databases/trades.db
 USER_HISTORY_DB_PATH=./databases/user_history.db
 TRAINING_DB_PATH=./databases/training.db
@@ -108,15 +97,14 @@ TRAINING_DB_PATH=./databases/training.db
 - [x] Polymarket Data API integration
 - [x] Async global-trade polling
 - [x] Local data storage
-- [ ] First statistical anomaly detection signal
-- [ ] Public dataset release
-- [ ] Dashboard / web frontend
+- [x] Modular pipeline refactor (staged ingest, exposure, routing, context, investigation)
+- [ ] Python-based exposure scoring engine
+- [ ] Investigator
+- [ ] Data presentation
 
 ---
 
 ## Contributing
-
-This is a collaborative research initiative. We're looking for people who care about market integrity and have backgrounds in statistics, systems programming, or investigative journalism.
 
 Open an issue, reach out directly, or just submit a PR.
 
@@ -127,5 +115,3 @@ Open an issue, reach out directly, or just submit a PR.
 MIT — all data and findings are public and reproducible by design.
 
 ---
-
-*Named after Cassandra of Troy — she saw the truth and nobody listened. We're working on the second part.*
