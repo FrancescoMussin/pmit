@@ -90,14 +90,14 @@ TRAINING_DB_PATH=./databases/training.db
 
 ## Roadmap
 
-- [x] Project scaffolding
-- [x] Polymarket Data API integration
+- [x] **Project scaffolding**
+- [x] **Polymarket Data API integration**
 - [x] **Async global-trade polling & non-blocking SQLite**
 - [x] **MPSC Decoupled pipeline architecture**
 - [x] **Python-based exposure scoring engine (sentence-BERT)**
-- [x] Local batch-persistance logic
-- [ ] Investigator (Deep-dive on specific user patterns)
-- [ ] Data presentation dashboard
+- [x] **Local batch-persistance logic**
+- [ ] **Investigator (Deep-dive on specific user patterns)**
+- [ ] **Data presentation dashboard**
 
 ---
 
