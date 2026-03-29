@@ -79,7 +79,11 @@ impl TradeIngestor {
         Ok(IngestedTradeBatch::new(trades, ingested_at))
     }
 
-    async fn persist_batch(&self, db_handler: &TradeDatabaseHandler, trades: Vec<Trade>) -> Result<()> {
+    async fn persist_batch(
+        &self,
+        db_handler: &TradeDatabaseHandler,
+        trades: Vec<Trade>,
+    ) -> Result<()> {
         db_handler.insert_trades_batch(trades).await
     }
 }
@@ -117,4 +121,80 @@ fn deserialize_buy_trades(raw_payload: Value) -> Result<Vec<Trade>> {
     }
 
     Ok(buy_trades)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_deserialize_buy_trades_filters_correctly() {
+        let raw_payload = json!([
+            {
+                "proxyWallet": "0x123",
+                "side": "buy",
+                "asset": "USDC",
+                "size": 100.0,
+                "price": 0.5,
+                "timestamp": 1000,
+                "transactionHash": "0xabc1"
+            },
+            {
+                "proxyWallet": "0x456",
+                "side": "sell",
+                "asset": "ETH",
+                "size": 50.0,
+                "price": 0.3,
+                "timestamp": 1001,
+                "transactionHash": "0xabc2"
+            },
+            {
+                "proxyWallet": "0x789",
+                "side": "BUY",
+                "asset": "BTC",
+                "size": 10.0,
+                "price": 0.9,
+                "timestamp": 1002,
+                "transactionHash": "0xabc3"
+            }
+        ]);
+
+        let result = deserialize_buy_trades(raw_payload).expect("Should parse correctly");
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].transaction_hash, "0xabc1");
+        assert_eq!(result[1].transaction_hash, "0xabc3");
+    }
+
+    #[test]
+    fn test_deserialize_buy_trades_empty_array() {
+        let raw_payload = json!([]);
+        let result = deserialize_buy_trades(raw_payload).expect("Should parse correctly");
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_deserialize_buy_trades_malformed_item() {
+        let raw_payload = json!([
+            {
+                "proxyWallet": "0x123",
+                "side": "buy",
+                // missing asset
+                "size": 100.0,
+                "price": 0.5,
+                "timestamp": 1000,
+                "transactionHash": "0xabc1"
+            }
+        ]);
+
+        let result = deserialize_buy_trades(raw_payload);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_deserialize_buy_trades_not_an_array() {
+        let raw_payload = json!({"not": "an array"});
+        let result = deserialize_buy_trades(raw_payload);
+        assert!(result.is_err());
+    }
 }

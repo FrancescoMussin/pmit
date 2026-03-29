@@ -31,7 +31,12 @@ impl Config {
     pub fn load() -> Result<Self> {
         // Load variables from .env if it exists
         dotenvy::dotenv().ok();
+        Self::parse_from_env()
+    }
 
+    /// Parses configuration directly from environment variables without loading .env.
+    /// This is useful for testing in isolation.
+    pub fn parse_from_env() -> Result<Self> {
         let polymarket_data_api_url = env::var("POLYMARKET_DATA_API_URL")
             .unwrap_or_else(|_| "https://data-api.polymarket.com".to_string());
 
@@ -97,5 +102,53 @@ impl Config {
             user_history_db_path,
             training_db_path,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[test]
+    fn test_config_load_defaults() {
+        // Clear env vars that might be set in the environment or .env
+        unsafe {
+            env::remove_var("POLL_INTERVAL_SECS");
+            env::remove_var("GLOBAL_TRADES_LIMIT");
+            env::remove_var("EXPOSURE_TEMPERATURE");
+        }
+
+        let config = Config::parse_from_env().expect("Should load with defaults");
+        assert_eq!(config.poll_interval_secs, 10);
+        assert_eq!(config.global_trades_limit, 1000);
+        assert_eq!(config.exposure_temperature, 0.30);
+    }
+
+    #[test]
+    fn test_config_load_custom() {
+        unsafe { env::set_var("POLL_INTERVAL_SECS", "60") };
+        let config = Config::parse_from_env().expect("Should load with custom value");
+        assert_eq!(config.poll_interval_secs, 60);
+        unsafe { env::remove_var("POLL_INTERVAL_SECS") };
+    }
+
+    #[test]
+    fn test_config_invalid_number() {
+        unsafe { env::set_var("POLL_INTERVAL_SECS", "not a number") };
+        let result = Config::parse_from_env();
+        assert!(result.is_err());
+        unsafe { env::remove_var("POLL_INTERVAL_SECS") };
+    }
+
+    #[test]
+    fn test_config_invalid_temperature() {
+        unsafe { env::set_var("EXPOSURE_TEMPERATURE", "0.0") };
+        let result = Config::parse_from_env();
+        assert!(result.is_err());
+        unsafe { env::set_var("EXPOSURE_TEMPERATURE", "-1.0") };
+        let result = Config::parse_from_env();
+        assert!(result.is_err());
+        unsafe { env::remove_var("EXPOSURE_TEMPERATURE") };
     }
 }

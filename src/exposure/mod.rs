@@ -1,14 +1,15 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use std::path::Path;
 use std::process::Stdio;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 
 use crate::polymarket::Trade;
 
-// The model we use for computing exposure scores is in an asynchronous python worker process, so we need to
-// define the communication protocol and the Rust-side engine to manage it using tokio::process.
+// The model we use for computing exposure scores is in an asynchronous python worker process, so we
+// need to define the communication protocol and the Rust-side engine to manage it using
+// tokio::process.
 
 /// Trade enriched with a continuous exposure score in [0.0, 1.0].
 #[derive(Debug, Clone)]
@@ -56,15 +57,16 @@ pub struct ExposureEngine {
 }
 
 impl ExposureEngine {
-    /// Asynchronously initializes the exposure engine by starting the Python worker process and awaiting its
-    /// readiness signal. The `exposure_temperature` parameter is passed to the worker as an
-    /// environment variable to configure the softmax temperature used in scoring. The method
-    /// returns an instance of `ExposureEngine` with the communication channels set up and ready
-    /// for scoring requests. If the worker fails to start or does not signal readiness within a
-    /// reasonable time, an error is returned. The worker process is expected to be defined in
-    /// `python_modules/exposure_worker.py` and should be executable with either `python3` or a
-    /// virtual environment Python at `.venv/bin/python`. The worker should print a JSON line with
-    /// `{"ready": true}` to stdout when it is ready to receive scoring requests.  
+    /// Asynchronously initializes the exposure engine by starting the Python worker process and
+    /// awaiting its readiness signal. The `exposure_temperature` parameter is passed to the
+    /// worker as an environment variable to configure the softmax temperature used in scoring.
+    /// The method returns an instance of `ExposureEngine` with the communication channels set
+    /// up and ready for scoring requests. If the worker fails to start or does not signal
+    /// readiness within a reasonable time, an error is returned. The worker process is expected
+    /// to be defined in `python_modules/exposure_worker.py` and should be executable with
+    /// either `python3` or a virtual environment Python at `.venv/bin/python`. The worker
+    /// should print a JSON line with `{"ready": true}` to stdout when it is ready to receive
+    /// scoring requests.
     pub async fn new(exposure_temperature: f64) -> Result<Self> {
         // we check if a python virtual environment exists at .venv/bin/python, otherwise we fall
         // back to python3 in PATH
@@ -173,7 +175,9 @@ impl ExposureEngine {
         // write the JSON payload to the worker's stdin, followed by a newline.
         let mut msg = payload;
         msg.push('\n');
-        self.worker_stdin.write_all(msg.as_bytes()).await
+        self.worker_stdin
+            .write_all(msg.as_bytes())
+            .await
             .context("Failed to write request to exposure worker")?;
         // since many i/o streams are buffered, we need to flush after writing to ensure the worker
         // receives the data immediately, rather than waiting for the buffer to fill up or the
@@ -246,4 +250,81 @@ pub fn split_by_threshold(
     }
 
     (relevant, deferred)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::data_structures::{ContractId, Side, Trade, WalletAddress};
+
+    fn mock_trade(hash: &str) -> Trade {
+        Trade {
+            maker_address: WalletAddress::new(
+                "0xbf8d2192f319af779e87899b847017096bc7c93a".to_string(),
+            ),
+            side: Side::Buy,
+            asset: ContractId::new(
+                "32516959846448419995643742836043735992939289847692314265462730646982809895410"
+                    .to_string(),
+            ),
+            title: None,
+            outcome: None,
+            size: 100.0,
+            price: 1.0,
+            timestamp: 1000,
+            transaction_hash: hash.to_string(),
+        }
+    }
+
+    #[test]
+    fn test_split_by_threshold() {
+        let trades = vec![
+            ScoredTrade {
+                trade: mock_trade("0x1"),
+                exposure_score: 0.8,
+            },
+            ScoredTrade {
+                trade: mock_trade("0x2"),
+                exposure_score: 0.4,
+            },
+            ScoredTrade {
+                trade: mock_trade("0x3"),
+                exposure_score: 0.6,
+            },
+        ];
+
+        let (relevant, deferred) = split_by_threshold(trades, 0.5);
+
+        assert_eq!(relevant.len(), 2);
+        assert_eq!(deferred.len(), 1);
+        assert_eq!(relevant[0].trade.transaction_hash, "0x1");
+        assert_eq!(relevant[1].trade.transaction_hash, "0x3");
+        assert_eq!(deferred[0].trade.transaction_hash, "0x2");
+    }
+
+    #[test]
+    fn test_split_by_threshold_exact() {
+        let trades = vec![ScoredTrade {
+            trade: mock_trade("0x1"),
+            exposure_score: 0.5,
+        }];
+
+        let (relevant, deferred) = split_by_threshold(trades, 0.5);
+        assert_eq!(relevant.len(), 1);
+        assert_eq!(deferred.len(), 0);
+    }
+
+    #[test]
+    fn test_scored_trade_clamping_logic() {
+        // We test that the score_batch logic (which we'll simulate here) correctly clamps values.
+        // Since we can't easily mock the whole score_batch without a worker, we test the
+        // closure/logic used in it.
+        let raw_scores = vec![-0.5, 0.5, 1.5];
+        let clamped: Vec<f64> = raw_scores
+            .into_iter()
+            .map(|s: f64| s.clamp(0.0, 1.0))
+            .collect();
+
+        assert_eq!(clamped, vec![0.0, 0.5, 1.0]);
+    }
 }

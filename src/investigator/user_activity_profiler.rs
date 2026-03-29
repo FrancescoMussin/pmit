@@ -65,7 +65,12 @@ impl UserActivityProfiler {
             Exposure: {:.3}\n\
             Value:    ${:.2} ({:.2} shares @ ${:.2})\n\
             ===========================================================================================",
-            bet_title, bet_outcome, exposure_score, total_value, trade.size, trade.price
+            bet_title,
+            bet_outcome,
+            exposure_score,
+            total_value,
+            trade.size,
+            trade.price
         );
 
         // Only profile users if their trade value is >= our threshold.
@@ -105,7 +110,10 @@ impl UserActivityProfiler {
                             // for future reference and potential training data, even if the
                             // subsequent processing or preview generation fails.
                             if let Err(e) = user_history_db_clone
-                                .insert_user_activity_snapshot(address_clone.to_string(), activity.clone())
+                                .insert_user_activity_snapshot(
+                                    address_clone.to_string(),
+                                    activity.clone(),
+                                )
                                 .await
                             {
                                 tracing::error!(
@@ -113,7 +121,8 @@ impl UserActivityProfiler {
                                     >> ❌ PERSIST ERROR\n\
                                     >> Address: {}\n\
                                     >> Error:   {:?}",
-                                    address_clone, e
+                                    address_clone,
+                                    e
                                 );
                             }
 
@@ -127,7 +136,8 @@ impl UserActivityProfiler {
                                 >> ✅ PROFILE FETCHED\n\
                                 >> Address: {}\n\
                                 >> Preview: {}...",
-                                address_clone, preview
+                                address_clone,
+                                preview
                             );
                         }
                         Err(e) => {
@@ -136,7 +146,8 @@ impl UserActivityProfiler {
                                 >> ❌ FETCH ERROR\n\
                                 >> Address: {}\n\
                                 >> Error:   {:?}",
-                                address_clone, e
+                                address_clone,
+                                e
                             );
                         }
                     }

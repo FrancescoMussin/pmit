@@ -124,7 +124,7 @@ async fn main() -> Result<()> {
         let mut stale_streak: u32 = 0;
 
         tracing::info!("Background processing task started.");
-        
+
         // we wait for the first batch of trades to arrive
         while let Some(trades) = rx.recv().await {
             // First we need to check if the feed is stale.
