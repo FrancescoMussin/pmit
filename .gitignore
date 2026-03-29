@@ -21,6 +21,7 @@ __pycache__/
 *.db-wal
 *.db-shm
 databases/*.db
+!databases/training.db
 
 # Editor/OS noise
 .DS_Store
