@@ -136,7 +136,9 @@ impl ExposureEngine {
 
         // if we exhausted all attempts without seeing the readiness signal, we return an error
         if !saw_ready {
-            anyhow::bail!("Exposure worker did not become ready");
+            return Err(anyhow::anyhow!(
+                "Exposure worker did not signal readiness after multiple attempts"
+            ));
         }
 
         Ok(Self {
