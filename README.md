@@ -7,51 +7,48 @@
 
 PMIT is a real-time data pipeline and anomaly detection system for prediction markets (starting with Polymarket). It currently polls the global trades feed, looks at markets exposed to insider traders, and tries to spot suspicious actors
 
-It's just a fun project that i used to learn a couple of things
+It's just a fun project that I used to learn a couple of things
 ---
 
 ## Challenge
 
-The challenge is to be able, from only the polymarket apis, to detect people using their insider knowledge against
+The challenge is to be able, from only the polymarket APIs, to detect people using their insider knowledge against
 people partecipating on the other end of the bet. There are many components to this, since not all markets are
-exposed to insider trading (for example the one about city temperatures) and since insider traders can use different strategies.
+exposed to insider trading (for example the ones about city temperatures) and since insider traders can use different strategies.
 
 
 ---
 
 ## Architecture
 
-Here's a rough outline of how this is all intended to work. Keep in mind that this is subject to change.
+PMIT uses a **fully asynchronous, decoupled pipeline** to ensure real-time performance even under heavy market loads:
 
-1. Ingest
-- Collect trades in real time from the selected source and store raw events so no information is lost.
+1. **Ingest (Fast Path)**
+   - The main loop polls the Polymarket Data API and immediately persists raw trades to SQLite using **batch transactions**.
+   - Decoupled via **MPSC channels** to ensure polling is never blocked by downstream logic.
 
-2. Exposure
-- Perform a fast first-pass assessment (for example on market text/exposure) to prioritize what needs deeper analysis.
+2. **Exposure (Background Path)**
+   - A dedicated processing task receives trades and scores them using a **Python-based sentence-BERT** model.
+   - High-exposure trades (e.g., political insiders, sensitive event markets) are prioritized.
 
-3. Route
-- Apply policy decisions to decide which trades move forward immediately, which are deferred, and which are ignored for now.
-
-4. Context
-- Gather additional context (such as maker behavior/history and related market signals) for trades selected for deeper analysis.
-
-5. Investigate
-- Perform an additional analysis on the additional data to decide if the selected trades are suspicious or not.
-
+3. **Route & Profile**
+   - Trades are filtered by exposure threshold.
+   - Relevant trades trigger a **User Activity Profiler** that fetches and persists maker history snapshots for anomaly detection.
 
 ---
 
 ## Tech Stack
 
-- **Rust + Tokio** — async ingestion pipeline
-- **reqwest** — HTTP client for Polymarket Data API
-- **SQLite / serde** — local storage and deserialization
-- **Python (pandas, scipy)** — statistical analysis and anomaly detection
+- **Rust + Tokio** — core async coordination
+- **tokio-rusqlite** — non-blocking, asynchronous SQLite persistence
+- **MPSC Channels** — architectural decoupling of ingestion and analysis
+- **Python (sentence-transformers)** — ML-powered exposure scoring
+- **reqwest** — async HTTP client
+- **SQLite** — high-speed local data lake with WAL mode enabled
 
 ---
 
 ## Getting Started
-
 
 Clone the repository and build the Rust backend:
 
@@ -95,12 +92,12 @@ TRAINING_DB_PATH=./databases/training.db
 
 - [x] Project scaffolding
 - [x] Polymarket Data API integration
-- [x] Async global-trade polling
-- [x] Local data storage
-- [x] Modular pipeline refactor (staged ingest, exposure, routing, context, investigation)
-- [ ] Python-based exposure scoring engine (deeper dive)
-- [ ] Investigator
-- [ ] Data presentation
+- [x] **Async global-trade polling & non-blocking SQLite**
+- [x] **MPSC Decoupled pipeline architecture**
+- [x] **Python-based exposure scoring engine (sentence-BERT)**
+- [x] Local batch-persistance logic
+- [ ] Investigator (Deep-dive on specific user patterns)
+- [ ] Data presentation dashboard
 
 ---
 

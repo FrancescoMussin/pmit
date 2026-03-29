@@ -29,11 +29,12 @@ use tracing_subscriber::EnvFilter;
 // we return a Result from main so we can use the `?` operator for easier error handling
 #[tokio::main]
 async fn main() -> Result<()> {
+    // set up the tracing_subscriber
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::builder()
                 .with_default_directive(tracing::Level::INFO.into())
-                .from_env_lossy()
+                .from_env_lossy(),
         )
         .init();
     // 1. We load the configuration
@@ -44,7 +45,8 @@ async fn main() -> Result<()> {
     trades_db.init_schema().await?;
     // same here for the user history database, which we use to store snapshots of user activity
     // profiles when we fetch them after large trades
-    let user_history_db = UserHistoryDatabaseHandler::new(config.user_history_db_path.clone()).await?;
+    let user_history_db =
+        UserHistoryDatabaseHandler::new(config.user_history_db_path.clone()).await?;
     user_history_db.init_schema().await?;
 
     // Training data is managed by Python workflows; we only ensure the DB file exists.
@@ -52,7 +54,8 @@ async fn main() -> Result<()> {
 
     tracing::info!(
         "Loaded config! Polling Global Trades API every {} seconds (limit={})",
-        config.poll_interval_secs, config.global_trades_limit
+        config.poll_interval_secs,
+        config.global_trades_limit
     );
     tracing::info!("Trades DB initialized at {}", config.trades_db_path);
     tracing::info!(
@@ -70,18 +73,21 @@ async fn main() -> Result<()> {
     );
     tracing::info!(
         "Staleness detector: warn_lag={}s, consecutive_polls={}",
-        config.stale_feed_warn_secs, config.stale_feed_consecutive_polls
+        config.stale_feed_warn_secs,
+        config.stale_feed_consecutive_polls
     );
     // 3. Set up our LRU (Least Recently Used) Caches
     // This cache limits memory usage by only remembering the 1,000 most recently queried addresses
     // the value here is () because only membership in the cache matters, not the value itself
-    let mut recent_users: LruCache<WalletAddress, ()> =
-        LruCache::new(NonZeroUsize::new(1000).context("Invalid nonzero size for recent users LRU cache")?);
+    let mut recent_users: LruCache<WalletAddress, ()> = LruCache::new(
+        NonZeroUsize::new(1000).context("Invalid nonzero size for recent users LRU cache")?,
+    );
 
     // We also need a cache to remember which trades we've already processed,
     // so our 10-second polling loop doesn't double-count the same trade.
-    let mut processed_trades: LruCache<String, ()> =
-        LruCache::new(NonZeroUsize::new(5000).context("Invalid nonzero size for processed trades LRU cache")?);
+    let mut processed_trades: LruCache<String, ()> = LruCache::new(
+        NonZeroUsize::new(5000).context("Invalid nonzero size for processed trades LRU cache")?,
+    );
 
     // 4. Create a shared HTTP Client for the application
     let http_client = reqwest::Client::new();
@@ -89,38 +95,100 @@ async fn main() -> Result<()> {
     // normalize them into our internal Trade struct, while also persisting the raw JSON and
     // normalized data to our trades database
     let trade_ingestor = TradeIngestor::new();
-    // we also asynchronously initialize the exposure engine, which will spawn a Python worker process running the
-    // sentence-BERT model for scoring trade exposure, and set up the communication channels for
-    // sending trade data and receiving exposure scores.
+    // we also asynchronously initialize the exposure engine, which will spawn a Python worker
+    // process running the sentence-BERT model for scoring trade exposure, and set up the
+    // communication channels for sending trade data and receiving exposure scores.
     let mut exposure_engine = ExposureEngine::new(config.exposure_temperature).await?;
     // finally we initialize the user activity profiler, which handles routed trades and
     // fetches/persists user activity snapshots for high-value maker profiles.
     let user_activity_profiler = UserActivityProfiler::new();
 
-    // 5. Create our polling interval
+    // 5. Initialize the Processing Channel
+    // We use a bounded channel of 100 batches to provide backpressure if the scoring/profiling
+    // falls too far behind the polling.
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<Vec<Trade>>(100);
+
     let mut poll_interval = tokio::time::interval(Duration::from_secs(config.poll_interval_secs));
 
-    // 6. Background Polling Loop
+    // 6. Spawn the Background Processing Task
+    // This task owns the heavy-duty components: the ExposureEngine (ML), the UserActivityProfiler,
+    // and the LRU caches for deduplication and recent users.
+    let config_clone = config.clone();
+    let http_client_clone = http_client.clone();
+    let user_history_db_clone = user_history_db.clone();
 
+    let processing_handle = tokio::spawn(async move {
+        let mut exposure_engine = exposure_engine;
+        let mut processed_trades = processed_trades;
+        let mut recent_users = recent_users;
+        let mut stale_streak: u32 = 0;
+
+        tracing::info!("Background processing task started.");
+        
+        // we wait for the first batch of trades to arrive
+        while let Some(trades) = rx.recv().await {
+            // First we need to check if the feed is stale.
+            // We do this in the processing task because it's part of the analysis pipeline.
+            stale_streak = update_stale_feed_streak(
+                &trades,
+                stale_streak,
+                config_clone.stale_feed_warn_secs,
+                config_clone.stale_feed_consecutive_polls,
+            );
+
+            // Deduplicate: only process trades we haven't seen in the LRU cache yet.
+            let new_trades = extract_unseen_trades(trades, &mut processed_trades);
+            if new_trades.is_empty() {
+                continue;
+            }
+
+            // Feed the trades to the Exposure engine (ML Scoring)
+            let scored_trades = match exposure_engine.score_batch(new_trades).await {
+                Ok(scored) => scored,
+                Err(e) => {
+                    tracing::error!("Exposure scoring failed for this batch: {:?}", e);
+                    continue;
+                }
+            };
+
+            // Exposure -> Routing (temporary routing policy)
+            let exposure_threshold = config_clone.exposure_threshold;
+            let (relevant_trades, deferred_trades) =
+                exposure::split_by_threshold(scored_trades, exposure_threshold);
+
+            tracing::info!(
+                "Exposure routing: relevant={}, deferred={} (threshold={:.2})",
+                relevant_trades.len(),
+                deferred_trades.len(),
+                exposure_threshold
+            );
+
+            // Routing -> UserActivityProfiler (History Fetching)
+            user_activity_profiler.profile_batch(
+                relevant_trades,
+                &mut recent_users,
+                &http_client_clone,
+                &user_history_db_clone,
+                &config_clone,
+            );
+        }
+
+        tracing::info!("Background processing task shutting down.");
+    });
+
+    // 7. Background Polling Loop
     tracing::info!(
         "Starting global trade monitor... Polling every {}s",
         config.poll_interval_secs
     );
-    // this is just for keeping track of how many consecutive times we've seen a stale feed, so we
-    // can log that pattern if it emerges
-    let mut stale_streak: u32 = 0;
+
     // We start the polling loop, which will run indefinitely until the program is stopped
     loop {
-        // The `tokio::select!` macro allows us to wait on multiple asynchronous events
-        // simultaneously. In this case, we wait for either a shutdown signal (Ctrl+C) or
-        // the next tick of our polling interval.
         tokio::select! {
             _ = tokio::signal::ctrl_c() => {
-                tracing::info!("Shutdown signal received. Flushing SQLite WAL checkpoints...");
+                tracing::info!("Shutdown signal received. Cleaning up...");
                 break;
             }
-            // this blocks a new iteration of the loop until the configured interval has passed since the last tick
-            // (because poll_interval.tick() is a future)
             _ = poll_interval.tick() => {
                 tracing::debug!("--> Polling Data API for new trades...");
 
@@ -132,27 +200,19 @@ async fn main() -> Result<()> {
                 )
                 .await
                 {
-                    // first case: we successfully got a response from the API, and we have a raw Value payload to ingest
-                    // normally the api would return a json but fetch_global_trades_raw_json already transformns this into
-                    // a serde_json::Value for us, so we can just pass it to the ingestor without worrying about the HTTP
-                    // details here in main
                     Ok(raw_payload) => {
-                        // we pass the raw payload to the ingestor, which will parse it, normalize it into our internal Trade struct,
-                        // and also persist the trades to our trades.db
+                        // We pass the raw payload to the ingestor, which will parse it, normalize it,
+                        // and also persist the trades to our trades.db.
                         let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &trades_db).await
                         {
-                            // we do some error handling here
                             Ok(batch) => batch,
                             Err(e) => {
                                 tracing::error!("Error ingesting raw trades payload: {:?}", e);
                                 continue;
                             }
                         };
-                        // after ingesting we get the trades back so that we can pass them to the exposure engine for scoring and
-                        // routing
-                        let trades = ingested_batch.into_trades();
 
-                        // First we need to check if the feed is stale.
+                        let trades = ingested_batch.into_trades();
                         if trades.is_empty() {
                             tracing::debug!(
                                 "    (No trades returned in the last {} seconds)",
@@ -161,53 +221,10 @@ async fn main() -> Result<()> {
                             continue;
                         }
 
-                        stale_streak = update_stale_feed_streak(
-                            &trades,
-                            stale_streak,
-                            config.stale_feed_warn_secs,
-                            config.stale_feed_consecutive_polls,
-                        );
-
-                        let new_trades = extract_unseen_trades(trades, &mut processed_trades);
-                        if new_trades.is_empty() {
-                            tracing::debug!(
-                                "    (No new trades in the last {} seconds)",
-                                config.poll_interval_secs
-                            );
-                            continue;
+                        // Offload the heavy processing to the background task.
+                        if let Err(e) = tx.try_send(trades) {
+                            tracing::warn!("Processing channel full or closed! Batch dropped: {:?}", e);
                         }
-
-                        // Ingestor -> Exposure engine
-                        let scored_trades = match exposure_engine.score_batch(new_trades).await {
-                            // error handling for the exposure engine, which might fail if the Python worker
-                            // process crashes or returns invalid data
-                            Ok(scored) => scored,
-                            Err(e) => {
-                                tracing::error!("Exposure scoring failed for this batch: {:?}", e);
-                                continue;
-                            }
-                        };
-
-                        // Exposure -> Routing (temporary routing policy)
-                        let exposure_threshold = config.exposure_threshold;
-                        let (relevant_trades, deferred_trades) =
-                            exposure::split_by_threshold(scored_trades, exposure_threshold);
-
-                        tracing::info!(
-                            "Exposure routing: relevant={}, deferred={} (threshold={:.2})",
-                            relevant_trades.len(),
-                            deferred_trades.len(),
-                            exposure_threshold
-                        );
-
-                        // Routing -> UserActivityProfiler
-                        user_activity_profiler.profile_batch(
-                            relevant_trades,
-                            &mut recent_users,
-                            &http_client,
-                            &user_history_db,
-                            &config,
-                        );
                     }
                     Err(e) => {
                         tracing::error!("Error fetching global trades: {:?}", e);
@@ -216,6 +233,13 @@ async fn main() -> Result<()> {
             }
         }
     }
+
+    // Graceful Shutdown Sequence:
+    // 1. Drop the sender so the receiver task knows no more data is coming.
+    drop(tx);
+
+    // 2. Wait for the processing task to finish its final batch.
+    let _ = processing_handle.await;
 
     // Before shutting down, we want to checkpoint the SQLite databases to ensure all data is
     // flushed from the WAL files to the main DB files.
@@ -256,7 +280,9 @@ fn update_stale_feed_streak(
         let next_streak = current_streak + 1;
         tracing::warn!(
             "[STALE FEED] newest trade is {}s old (threshold={}s, streak={})",
-            lag_secs, stale_feed_warn_secs, next_streak
+            lag_secs,
+            stale_feed_warn_secs,
+            next_streak
         );
 
         if next_streak >= stale_feed_consecutive_polls {
@@ -270,7 +296,8 @@ fn update_stale_feed_streak(
         if current_streak > 0 {
             tracing::info!(
                 "Feed freshness recovered after {} stale poll(s). Current lag={}s",
-                current_streak, lag_secs
+                current_streak,
+                lag_secs
             );
         }
         0
