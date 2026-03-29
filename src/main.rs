@@ -8,7 +8,7 @@ mod ingestor;
 mod investigator;
 mod polymarket;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use config::Config;
 use data_structures::WalletAddress;
 use database_handler::{
@@ -76,12 +76,12 @@ async fn main() -> Result<()> {
     // This cache limits memory usage by only remembering the 1,000 most recently queried addresses
     // the value here is () because only membership in the cache matters, not the value itself
     let mut recent_users: LruCache<WalletAddress, ()> =
-        LruCache::new(NonZeroUsize::new(1000).unwrap());
+        LruCache::new(NonZeroUsize::new(1000).context("Invalid nonzero size for recent users LRU cache")?);
 
     // We also need a cache to remember which trades we've already processed,
     // so our 10-second polling loop doesn't double-count the same trade.
     let mut processed_trades: LruCache<String, ()> =
-        LruCache::new(NonZeroUsize::new(5000).unwrap());
+        LruCache::new(NonZeroUsize::new(5000).context("Invalid nonzero size for processed trades LRU cache")?);
 
     // 4. Create a shared HTTP Client for the application
     let http_client = reqwest::Client::new();
