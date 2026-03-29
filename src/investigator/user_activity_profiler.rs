@@ -105,7 +105,8 @@ impl UserActivityProfiler {
                             // for future reference and potential training data, even if the
                             // subsequent processing or preview generation fails.
                             if let Err(e) = user_history_db_clone
-                                .insert_user_activity_snapshot(address_clone.as_str(), &activity)
+                                .insert_user_activity_snapshot(address_clone.to_string(), activity.clone())
+                                .await
                             {
                                 tracing::error!(
                                     "\n\

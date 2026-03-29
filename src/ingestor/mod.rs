@@ -45,24 +45,24 @@ impl TradeIngestor {
     }
 
     /// Parse raw JSON payload text returned by the API into normalized trades.
-    pub fn ingest_raw_json_str(
+    pub async fn ingest_raw_json_str(
         &self,
         raw_payload: &str,
         db_handler: &TradeDatabaseHandler,
     ) -> Result<IngestedTradeBatch> {
         let raw_value: Value =
             serde_json::from_str(raw_payload).context("Failed to parse raw trade payload text")?;
-        self.ingest_raw_value(raw_value, db_handler)
+        self.ingest_raw_value(raw_value, db_handler).await
     }
 
     /// Parse a raw JSON value returned by the API into normalized trades.
-    pub fn ingest_raw_value(
+    pub async fn ingest_raw_value(
         &self,
         raw_payload: Value,
         db_handler: &TradeDatabaseHandler,
     ) -> Result<IngestedTradeBatch> {
         let buy_trades = deserialize_buy_trades(raw_payload)?;
-        self.persist_batch(db_handler, &buy_trades)?;
+        self.persist_batch(db_handler, buy_trades.clone()).await?;
         let ingested_at = now_ts();
         Ok(IngestedTradeBatch::new(buy_trades, ingested_at))
     }
@@ -79,11 +79,8 @@ impl TradeIngestor {
         Ok(IngestedTradeBatch::new(trades, ingested_at))
     }
 
-    fn persist_batch(&self, db_handler: &TradeDatabaseHandler, trades: &[Trade]) -> Result<()> {
-        for trade in trades {
-            db_handler.insert_trade(trade)?;
-        }
-        Ok(())
+    async fn persist_batch(&self, db_handler: &TradeDatabaseHandler, trades: Vec<Trade>) -> Result<()> {
+        db_handler.insert_trades_batch(trades).await
     }
 }
 

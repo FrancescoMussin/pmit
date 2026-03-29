@@ -39,16 +39,16 @@ async fn main() -> Result<()> {
     // 1. We load the configuration
     let config = Config::load()?;
     // 2. Initialize all database handlers and schemas before starting the polling loop.
-    let trades_db = TradeDatabaseHandler::new(config.trades_db_path.clone())?;
+    let trades_db = TradeDatabaseHandler::new(config.trades_db_path.clone()).await?;
     // This will create the database file if it doesn't exist, and set up the necessary tables.
-    trades_db.init_schema()?;
+    trades_db.init_schema().await?;
     // same here for the user history database, which we use to store snapshots of user activity
     // profiles when we fetch them after large trades
-    let user_history_db = UserHistoryDatabaseHandler::new(config.user_history_db_path.clone())?;
-    user_history_db.init_schema()?;
+    let user_history_db = UserHistoryDatabaseHandler::new(config.user_history_db_path.clone()).await?;
+    user_history_db.init_schema().await?;
 
     // Training data is managed by Python workflows; we only ensure the DB file exists.
-    ensure_database_file(&config.training_db_path)?;
+    ensure_database_file(&config.training_db_path).await?;
 
     tracing::info!(
         "Loaded config! Polling Global Trades API every {} seconds (limit={})",
@@ -139,7 +139,7 @@ async fn main() -> Result<()> {
                     Ok(raw_payload) => {
                         // we pass the raw payload to the ingestor, which will parse it, normalize it into our internal Trade struct,
                         // and also persist the trades to our trades.db
-                        let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &trades_db)
+                        let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &trades_db).await
                         {
                             // we do some error handling here
                             Ok(batch) => batch,
@@ -219,15 +219,15 @@ async fn main() -> Result<()> {
 
     // Before shutting down, we want to checkpoint the SQLite databases to ensure all data is
     // flushed from the WAL files to the main DB files.
-    if let Err(e) = trades_db.checkpoint_truncate() {
+    if let Err(e) = trades_db.checkpoint_truncate().await {
         tracing::error!("Failed to checkpoint trades DB: {:?}", e);
     }
 
-    if let Err(e) = user_history_db.checkpoint_truncate() {
+    if let Err(e) = user_history_db.checkpoint_truncate().await {
         tracing::error!("Failed to checkpoint user history DB: {:?}", e);
     }
 
-    if let Err(e) = checkpoint_database_file(&config.training_db_path) {
+    if let Err(e) = checkpoint_database_file(&config.training_db_path).await {
         tracing::error!("Failed to checkpoint training DB: {:?}", e);
     }
 
