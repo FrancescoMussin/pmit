@@ -6,10 +6,35 @@ Output: {"scores": [0.12, 0.93, ...]}
 """
 # for encoding and decoding JSON messages
 import json
-# we need this for reading environment variables for configuration
 import os
+# we need this for reading environment variables for configuration
+# silence HuggingFace and Transformers noise
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 # to interact with the worker process's stdin and stdout
 import sys
+import logging
+import warnings
+
+# suppress HF Hub warnings about unauthenticated requests
+warnings.filterwarnings("ignore", message=".*unauthenticated requests to the HF Hub.*")
+
+# suppress all logging from third-party ML libraries
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
+
+# globally disable tqdm progress bars before importing ML modules
+try:
+    from tqdm import tqdm
+    from functools import partialmethod
+    tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
+except ImportError:
+    pass
+
 # Any allows any tiype for better type hints in dynamic contexts
 from typing import Any
 

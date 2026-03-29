@@ -71,8 +71,6 @@ class ExposureScorer:
         self.training_embeddings = self.model.encode(texts, convert_to_tensor=True)
         # explicitly write down the type for consistency
         self.training_scores = np.array(scores, dtype=np.float32)
-        
-        print(f"Loaded {len(texts)} training samples", file=sys.stderr)
     
     def score_trade(self, title: str, outcome: str) -> float:
         """
