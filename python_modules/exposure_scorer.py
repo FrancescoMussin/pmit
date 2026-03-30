@@ -50,31 +50,28 @@ class ExposureScorer:
     
     def _load_training_data(self, training_db: str = "databases/training.db"):
         """Load and embed all training samples."""
+        # we gotta make sure os is there
         import os
+        # make sure the path exists before trying to load the database, otherwise we get a confusing error. 
+        # If it doesn't exist, we warn and set up empty training data so all trades will get 0.0 exposure.
         if not os.path.exists(training_db):
             print(f"[exposure_scorer] WARNING: Training database not found at {training_db}. All trades will receive 0.0 exposure.", file=sys.stderr)
             self.training_embeddings = None
             self.training_scores = np.array([], dtype=np.float32)
             return
 
-        # open the connection to the training database.
-        conn = sqlite3.connect(training_db)
+        # open the connection to the training database (we only need read only mode)
+        conn = sqlite3.connect(f'file:{training_db}?mode=ro', uri=True)
         # cursor objects allow us to execute SQL queries and fetch results.
         cursor = conn.cursor()
         try:
             cursor.execute("SELECT title, outcome, exposure FROM training_samples")
             rows = cursor.fetchall()
         except sqlite3.OperationalError:
-            print(f"[exposure_scorer] WARNING: training_samples table not found in {training_db}.", file=sys.stderr)
-            rows = []
+            raise RuntimeError(f"[exposure_scorer] ERROR: training_samples table not found in {training_db}. Cannot proceed without training data table.")
         finally:
+            # we make sure the connection is closed after we're done, even if an error occurs.
             conn.close()
-        
-        if not rows:
-            print(f"[exposure_scorer] WARNING: No training samples found. All trades will receive 0.0 exposure.", file=sys.stderr)
-            self.training_embeddings = None
-            self.training_scores = np.array([], dtype=np.float32)
-            return
         
         # we unzip the rows into separate lists of titles, outcomes, and scores for easier processing.
         titles, outcomes, scores = zip(*rows)
