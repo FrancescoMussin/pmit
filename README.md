@@ -31,22 +31,24 @@ PMIT uses a **fully asynchronous, decoupled pipeline** to ensure real-time perfo
 
 ```mermaid
 graph TD
-    API[Polymarket Data API] -->|Poll| Loop[Main Async Loop]
-    Loop -->|Raw JSON| DB1[(Trades DB)]
-    Loop -->|MPSC Channel| Worker[Background Worker]
-    
-    subgraph Analysis Pipeline
-        Worker -->|Batch| ML[Python ML Engine]
-        ML -->|Score| Router{Exposure Router}
-        Router -->|> Threshold| Profiler[User Activity Profiler]
-        Router -->|< Threshold| Log[Deferred Log]
-    end
-    
-    Profiler -->|Fetch| Hist[User History API]
-    Profiler -->|Batch| DB2[(User History DB)]
-    
-    style ML fill:#f96,stroke:#333,stroke-width:2px
-    style Loop fill:#69f,stroke:#333,stroke-width:2px
+   API[Polymarket Data API] -->|Poll| Loop[Main Async Loop]
+   Loop -->|Trade data| DB1[(Trades DB)]
+   Loop -->|MPSC Channel| Worker[Background Worker]
+
+   subgraph Analysis Pipeline
+      Profiler -->|Fetch| Hist[User History API]
+      Profiler -->|Batch| DB2[(User History DB)]
+      Worker -->|Batch of trades| ML[Python ML Engine]
+      ML -->|Score| Router{Exposure Router}
+      Router -->|Trade Volume> Threshold| Profiler[User Activity Profiler]
+      Router -->|Trade Volume< Threshold| Log[Deferred Log]
+      Profiler -->|Fetch| Hist[User History API]
+      Profiler -->|Batch| DB2[(User History DB)]
+   end
+
+   classDef label fill=none,stroke=none,color=#333,align=right;
+   style ML fill:#f96,stroke:#333,stroke-width:2px
+   style Loop fill:#69f,stroke:#333,stroke-width:2px
 ```
 
 1. **Ingest (Fast Path)**
