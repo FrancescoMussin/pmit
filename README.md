@@ -29,19 +29,6 @@ exposed to insider trading (for example the ones about city temperatures) and si
 
 PMIT uses a **fully asynchronous, decoupled pipeline** to ensure real-time performance even under heavy market loads. 
 
-```mermaid
-graph TD
-   API[Polymarket Data API] -->|Poll| Loop[Main Async Loop]
-   Loop -->|Trade data| DB1[(Trades DB)]
-   Loop -->|MPSC Channel| Worker[Background Worker]
-
-   Worker -->|Batch of trades| ML[Python ML Engine]
-   ML -->|Score| Router{Exposure Router}
-   Router -->|Trade Volume> Threshold| Profiler[User Activity Profiler]
-   Router -->|Trade Volume< Threshold| Log[Deferred Log]
-   Profiler -->|Fetch| Hist[User History API]
-   Profiler -->|Batch| DB2[(User History DB)]
-```
 
 1. **Ingest (Fast Path)**
    - The main loop polls the Polymarket Data API and immediately persists raw trades to SQLite using **batch transactions**.
