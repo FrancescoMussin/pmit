@@ -56,7 +56,7 @@ impl UserActivityProfiler {
         let total_value = trade.size * trade.price;
         let bet_title = trade.title.as_deref().unwrap_or("Unknown Market");
         let bet_outcome = trade.outcome.as_deref().unwrap_or("N/A");
-
+        let total_profit = total_value * (1.0 / trade.price - 1.0);
         tracing::info!(
             "\n\
             ======================================= 🚨 TRADE 🚨 =======================================\n\
@@ -64,13 +64,15 @@ impl UserActivityProfiler {
             Outcome:  {}\n\
             Exposure: {:.3}\n\
             Value:    ${:.2} ({:.2} shares @ ${:.2})\n\
+            Profit:   ${:.2}\n\
             ===========================================================================================",
             bet_title,
             bet_outcome,
             exposure_score,
             total_value,
             trade.size,
-            trade.price
+            trade.price,
+            total_profit
         );
 
         // Only profile users if their trade value is >= our threshold.
