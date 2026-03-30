@@ -36,8 +36,6 @@ graph TD
    Loop -->|MPSC Channel| Worker[Background Worker]
 
    subgraph Analysis Pipeline
-      Profiler -->|Fetch| Hist[User History API]
-      Profiler -->|Batch| DB2[(User History DB)]
       Worker -->|Batch of trades| ML[Python ML Engine]
       ML -->|Score| Router{Exposure Router}
       Router -->|Trade Volume> Threshold| Profiler[User Activity Profiler]
@@ -45,11 +43,8 @@ graph TD
       Profiler -->|Fetch| Hist[User History API]
       Profiler -->|Batch| DB2[(User History DB)]
    end
-
-   classDef label fill=none,stroke=none,color=#333,align=right;
-   style ML fill:#f96,stroke:#333,stroke-width:2px
-   style Loop fill:#69f,stroke:#333,stroke-width:2px
 ```
+
 
 1. **Ingest (Fast Path)**
    - The main loop polls the Polymarket Data API and immediately persists raw trades to SQLite using **batch transactions**.
