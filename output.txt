@@ -1,0 +1,2936 @@
+[2m2026-04-04T17:02:53.008037Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Loaded config!
+[2m2026-04-04T17:02:53.008129Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Trades DB initialized at ./databases/trades.db
+[2m2026-04-04T17:02:53.029662Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Fetching active events from Gamma API...
+[2m2026-04-04T17:03:05.692435Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Monitoring event: US forces enter Iran by..?
+[2m2026-04-04T17:03:05.692567Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by January 31? with 2 tokens
+[2m2026-04-04T17:03:05.692606Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by March 31? with 2 tokens
+[2m2026-04-04T17:03:05.692632Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by February 28? with 2 tokens
+[2m2026-04-04T17:03:05.692664Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by December 31? with 2 tokens
+[2m2026-04-04T17:03:05.692725Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by March 3? with 2 tokens
+[2m2026-04-04T17:03:05.692759Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by March 1? with 2 tokens
+[2m2026-04-04T17:03:05.692788Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by March 14? with 2 tokens
+[2m2026-04-04T17:03:05.692886Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by March 7? with 2 tokens
+[2m2026-04-04T17:03:05.692956Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Watching Market: US forces enter Iran by April 30? with 2 tokens
+[2m2026-04-04T17:03:05.693014Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Initializing distribution profiles from recent global trades...
+
+Market Question                                              | Avg Value    | Std Dev     
+------------------------------------------------------------------------------------------
+US forces enter Iran by January 31?                          | $0.00        | $0.00       
+US forces enter Iran by March 7?                             | $0.00        | $0.00       
+US forces enter Iran by March 1?                             | $0.00        | $0.00       
+US forces enter Iran by February 28?                         | $0.00        | $0.00       
+US forces enter Iran by March 31?                            | $18.34       | $13.53      
+US forces enter Iran by March 3?                             | $0.00        | $0.00       
+US forces enter Iran by April 30?                            | $242.39      | $1026.84    
+US forces enter Iran by March 14?                            | $0.00        | $0.00       
+US forces enter Iran by December 31?                         | $132.11      | $359.46     
+
+[2m2026-04-04T17:03:08.452431Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Distribution initialization complete.
+[2m2026-04-04T17:03:08.452493Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Starting global trade monitor... Polling every 300s
+[2m2026-04-04T17:03:08.452714Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Background processing task started with 9 monitored markets.
+[2m2026-04-04T17:03:09.115709Z[0m [33m WARN[0m [2mpmit[0m[2m:[0m [STALE FEED] newest trade is 256s old (threshold=90s, streak=1)
+[2m2026-04-04T17:03:09.116187Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m >>> Processed batch! 401 unseen global trades extracted.
+[2m2026-04-04T17:03:09.116214Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.51 (13.20 shares @ $0.19)
+Profit:   $10.69
+===========================================================================================
+[2m2026-04-04T17:03:09.116239Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $30.00 (157.89 shares @ $0.19)
+Profit:   $127.89
+===========================================================================================
+[2m2026-04-04T17:03:09.116257Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $180.40 (220.00 shares @ $0.82)
+Profit:   $39.60
+===========================================================================================
+[2m2026-04-04T17:03:09.116267Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.116275Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $7.60 (38.00 shares @ $0.20)
+Profit:   $30.40
+===========================================================================================
+[2m2026-04-04T17:03:09.116284Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $6216.30 (7674.45 shares @ $0.81)
+Profit:   $1458.15
+===========================================================================================
+[2m2026-04-04T17:03:09.116292Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0000) by: 0x335592400e402c26583ce8b56d12605e9548a126
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.116316Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2.06 (2.54 shares @ $0.81)
+Profit:   $0.48
+===========================================================================================
+[2m2026-04-04T17:03:09.116335Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.00 (1.24 shares @ $0.81)
+Profit:   $0.24
+===========================================================================================
+[2m2026-04-04T17:03:09.116347Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $40.00 (200.00 shares @ $0.20)
+Profit:   $160.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116356Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.05 (5.00 shares @ $0.81)
+Profit:   $0.95
+===========================================================================================
+[2m2026-04-04T17:03:09.116365Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.05 (5.00 shares @ $0.81)
+Profit:   $0.95
+===========================================================================================
+[2m2026-04-04T17:03:09.116379Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.00 (12.35 shares @ $0.81)
+Profit:   $2.35
+===========================================================================================
+[2m2026-04-04T17:03:09.116386Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $729.00 (900.00 shares @ $0.81)
+Profit:   $171.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116419Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $162.00 (200.00 shares @ $0.81)
+Profit:   $38.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116431Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3560.00 (4395.06 shares @ $0.81)
+Profit:   $835.06
+===========================================================================================
+[2m2026-04-04T17:03:09.116440Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.05 (5.00 shares @ $0.81)
+Profit:   $0.95
+===========================================================================================
+[2m2026-04-04T17:03:09.116448Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.60 (1.98 shares @ $0.81)
+Profit:   $0.38
+===========================================================================================
+[2m2026-04-04T17:03:09.116456Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.17 shares @ $0.81)
+Profit:   $1.17
+===========================================================================================
+[2m2026-04-04T17:03:09.116464Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.17 shares @ $0.81)
+Profit:   $1.17
+===========================================================================================
+[2m2026-04-04T17:03:09.116473Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $162.00 (200.00 shares @ $0.81)
+Profit:   $38.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116481Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.17 shares @ $0.81)
+Profit:   $1.17
+===========================================================================================
+[2m2026-04-04T17:03:09.116490Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.116502Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.05 (5.00 shares @ $0.81)
+Profit:   $0.95
+===========================================================================================
+[2m2026-04-04T17:03:09.116512Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.17 shares @ $0.81)
+Profit:   $1.17
+===========================================================================================
+[2m2026-04-04T17:03:09.116520Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116528Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $8.80 (10.86 shares @ $0.81)
+Profit:   $2.06
+===========================================================================================
+[2m2026-04-04T17:03:09.116547Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.52 (4.35 shares @ $0.81)
+Profit:   $0.83
+===========================================================================================
+[2m2026-04-04T17:03:09.116559Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.14 (1.41 shares @ $0.81)
+Profit:   $0.27
+===========================================================================================
+[2m2026-04-04T17:03:09.116567Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $6.95 (8.58 shares @ $0.81)
+Profit:   $1.63
+===========================================================================================
+[2m2026-04-04T17:03:09.116575Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3560.00 (4395.06 shares @ $0.81)
+Profit:   $835.06
+===========================================================================================
+[2m2026-04-04T17:03:09.116584Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0099) by: 0x2974bd0059e48f215c391882976e0f1b4c8c9c23
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.116612Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (50.00 shares @ $0.20)
+Profit:   $40.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116633Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.00 (12.35 shares @ $0.81)
+Profit:   $2.35
+===========================================================================================
+[2m2026-04-04T17:03:09.116645Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $224.40 (277.04 shares @ $0.81)
+Profit:   $52.64
+===========================================================================================
+[2m2026-04-04T17:03:09.116654Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $100.00 (500.00 shares @ $0.20)
+Profit:   $400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116662Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $53.38 (65.90 shares @ $0.81)
+Profit:   $12.52
+===========================================================================================
+[2m2026-04-04T17:03:09.116670Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $100.00 (500.00 shares @ $0.20)
+Profit:   $400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116678Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $12.59 (14.31 shares @ $0.88)
+Profit:   $1.72
+===========================================================================================
+[2m2026-04-04T17:03:09.116686Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $10.00 (11.36 shares @ $0.88)
+Profit:   $1.36
+===========================================================================================
+[2m2026-04-04T17:03:09.116694Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.69 (13.20 shares @ $0.81)
+Profit:   $2.51
+===========================================================================================
+[2m2026-04-04T17:03:09.116702Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.116712Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.116720Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $100.00 (500.00 shares @ $0.20)
+Profit:   $400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116728Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $1.20 (9.23 shares @ $0.13)
+Profit:   $8.03
+===========================================================================================
+[2m2026-04-04T17:03:09.116736Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $13.00 (65.00 shares @ $0.20)
+Profit:   $52.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116744Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $20.00 (153.85 shares @ $0.13)
+Profit:   $133.85
+===========================================================================================
+[2m2026-04-04T17:03:09.116753Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $20.00 (100.00 shares @ $0.20)
+Profit:   $80.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116761Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $30.00 (30000.00 shares @ $0.00)
+Profit:   $29970.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116769Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (25.00 shares @ $0.20)
+Profit:   $20.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116777Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $2.00 (2000.00 shares @ $0.00)
+Profit:   $1998.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116786Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $200.00 (1000.00 shares @ $0.20)
+Profit:   $800.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116795Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2886.09 (3563.07 shares @ $0.81)
+Profit:   $676.98
+===========================================================================================
+[2m2026-04-04T17:03:09.116803Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0189) by: 0x88c4919de76e526d55a32c1f8afb439dd1f1129a
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.116827Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $100.00 (500.00 shares @ $0.20)
+Profit:   $400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116839Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $14.00 (70.00 shares @ $0.20)
+Profit:   $56.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116848Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $20.00 (100.00 shares @ $0.20)
+Profit:   $80.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116856Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.05 (5.00 shares @ $0.81)
+Profit:   $0.95
+===========================================================================================
+[2m2026-04-04T17:03:09.116864Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $2.00 (15.38 shares @ $0.13)
+Profit:   $13.38
+===========================================================================================
+[2m2026-04-04T17:03:09.116872Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.116880Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $1.00 (1.14 shares @ $0.88)
+Profit:   $0.14
+===========================================================================================
+[2m2026-04-04T17:03:09.116888Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $100.00 (123.46 shares @ $0.81)
+Profit:   $23.46
+===========================================================================================
+[2m2026-04-04T17:03:09.116897Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $22.80 (120.00 shares @ $0.19)
+Profit:   $97.20
+===========================================================================================
+[2m2026-04-04T17:03:09.116905Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $1.64 (12.63 shares @ $0.13)
+Profit:   $10.99
+===========================================================================================
+[2m2026-04-04T17:03:09.116913Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.99 (6.09 shares @ $0.82)
+Profit:   $1.10
+===========================================================================================
+[2m2026-04-04T17:03:09.116921Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.99 (6.09 shares @ $0.82)
+Profit:   $1.10
+===========================================================================================
+[2m2026-04-04T17:03:09.116929Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.61 (8.46 shares @ $0.19)
+Profit:   $6.85
+===========================================================================================
+[2m2026-04-04T17:03:09.116937Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.00 (1.22 shares @ $0.82)
+Profit:   $0.22
+===========================================================================================
+[2m2026-04-04T17:03:09.116945Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $4.86 (25.58 shares @ $0.19)
+Profit:   $20.72
+===========================================================================================
+[2m2026-04-04T17:03:09.116953Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $25.00 (30.49 shares @ $0.82)
+Profit:   $5.49
+===========================================================================================
+[2m2026-04-04T17:03:09.116961Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (26.32 shares @ $0.19)
+Profit:   $21.32
+===========================================================================================
+[2m2026-04-04T17:03:09.116968Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $200.00 (1052.63 shares @ $0.19)
+Profit:   $852.63
+===========================================================================================
+[2m2026-04-04T17:03:09.116978Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $11.82 (14.41 shares @ $0.82)
+Profit:   $2.59
+===========================================================================================
+[2m2026-04-04T17:03:09.116985Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $95.00 (500.00 shares @ $0.19)
+Profit:   $405.00
+===========================================================================================
+[2m2026-04-04T17:03:09.116993Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.117001Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $20.00 (24.39 shares @ $0.82)
+Profit:   $4.39
+===========================================================================================
+[2m2026-04-04T17:03:09.117009Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $77.65 (408.68 shares @ $0.19)
+Profit:   $331.03
+===========================================================================================
+[2m2026-04-04T17:03:09.117017Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $11.23 (59.12 shares @ $0.19)
+Profit:   $47.89
+===========================================================================================
+[2m2026-04-04T17:03:09.117025Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $100.00 (121.95 shares @ $0.82)
+Profit:   $21.95
+===========================================================================================
+[2m2026-04-04T17:03:09.117033Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $224.87 (274.90 shares @ $0.82)
+Profit:   $50.03
+===========================================================================================
+[2m2026-04-04T17:03:09.117052Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5983.79 (7387.40 shares @ $0.81)
+Profit:   $1403.61
+===========================================================================================
+[2m2026-04-04T17:03:09.117063Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0000) by: 0x4133f8ff4b624c1d1b4ddfbf1da803c1e0d4ea5d
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.117075Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $299.16 (1495.80 shares @ $0.20)
+Profit:   $1196.64
+===========================================================================================
+[2m2026-04-04T17:03:09.117085Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $7.60 (38.00 shares @ $0.20)
+Profit:   $30.40
+===========================================================================================
+[2m2026-04-04T17:03:09.117093Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4810.24 (5938.57 shares @ $0.81)
+Profit:   $1128.33
+===========================================================================================
+[2m2026-04-04T17:03:09.117103Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $9.64 (11.90 shares @ $0.81)
+Profit:   $2.26
+===========================================================================================
+[2m2026-04-04T17:03:09.117120Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $300.00 (1500.00 shares @ $0.20)
+Profit:   $1200.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117133Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $6.85 (8.46 shares @ $0.81)
+Profit:   $1.61
+===========================================================================================
+[2m2026-04-04T17:03:09.117142Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.117151Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $140.00 (700.00 shares @ $0.20)
+Profit:   $560.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117169Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.117181Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $60.00 (300.00 shares @ $0.20)
+Profit:   $240.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117193Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $11.11 (12.63 shares @ $0.88)
+Profit:   $1.52
+===========================================================================================
+[2m2026-04-04T17:03:09.117211Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $21.00 (25.93 shares @ $0.81)
+Profit:   $4.93
+===========================================================================================
+[2m2026-04-04T17:03:09.117222Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $5.95 (6.76 shares @ $0.88)
+Profit:   $0.81
+===========================================================================================
+[2m2026-04-04T17:03:09.117248Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1111.00 (5555.00 shares @ $0.20)
+Profit:   $4444.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117261Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $40.00 (200.00 shares @ $0.20)
+Profit:   $160.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117271Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.00 (1.23 shares @ $0.81)
+Profit:   $0.23
+===========================================================================================
+[2m2026-04-04T17:03:09.117289Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $28.35 (35.00 shares @ $0.81)
+Profit:   $6.65
+===========================================================================================
+[2m2026-04-04T17:03:09.117302Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $12.25 (15.12 shares @ $0.81)
+Profit:   $2.87
+===========================================================================================
+[2m2026-04-04T17:03:09.117312Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.117330Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.117344Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.00 (10.00 shares @ $0.20)
+Profit:   $8.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117353Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.86 (6.00 shares @ $0.81)
+Profit:   $1.14
+===========================================================================================
+[2m2026-04-04T17:03:09.117361Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $17.57 (87.85 shares @ $0.20)
+Profit:   $70.28
+===========================================================================================
+[2m2026-04-04T17:03:09.117370Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $30.00 (37.04 shares @ $0.81)
+Profit:   $7.04
+===========================================================================================
+[2m2026-04-04T17:03:09.117378Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $11.00 (11000.00 shares @ $0.00)
+Profit:   $10989.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117386Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117395Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $2.00 (15.38 shares @ $0.13)
+Profit:   $13.38
+===========================================================================================
+[2m2026-04-04T17:03:09.117403Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $164.00 (820.00 shares @ $0.20)
+Profit:   $656.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117411Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $40.40 (49.88 shares @ $0.81)
+Profit:   $9.48
+===========================================================================================
+[2m2026-04-04T17:03:09.117419Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $1.19 (9.17 shares @ $0.13)
+Profit:   $7.98
+===========================================================================================
+[2m2026-04-04T17:03:09.117428Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.78 (8.88 shares @ $0.20)
+Profit:   $7.10
+===========================================================================================
+[2m2026-04-04T17:03:09.117436Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $9.24 (11.41 shares @ $0.81)
+Profit:   $2.17
+===========================================================================================
+[2m2026-04-04T17:03:09.117444Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.117463Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.117475Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (25.00 shares @ $0.20)
+Profit:   $20.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117484Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (25.00 shares @ $0.20)
+Profit:   $20.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117492Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $9.64 (11.90 shares @ $0.81)
+Profit:   $2.26
+===========================================================================================
+[2m2026-04-04T17:03:09.117501Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1854.59 (2289.62 shares @ $0.81)
+Profit:   $435.03
+===========================================================================================
+[2m2026-04-04T17:03:09.117509Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $7.00 (35.00 shares @ $0.20)
+Profit:   $28.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117517Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $30.00 (150.00 shares @ $0.20)
+Profit:   $120.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117527Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.00 (10.00 shares @ $0.20)
+Profit:   $8.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117535Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.117543Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.117551Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2.07 (2.56 shares @ $0.81)
+Profit:   $0.49
+===========================================================================================
+[2m2026-04-04T17:03:09.117559Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2134.11 (2634.70 shares @ $0.81)
+Profit:   $500.59
+===========================================================================================
+[2m2026-04-04T17:03:09.117567Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $51.20 (256.00 shares @ $0.20)
+Profit:   $204.80
+===========================================================================================
+[2m2026-04-04T17:03:09.117575Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $8.07 (9.17 shares @ $0.88)
+Profit:   $1.10
+===========================================================================================
+[2m2026-04-04T17:03:09.117583Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $7.19 (8.88 shares @ $0.81)
+Profit:   $1.69
+===========================================================================================
+[2m2026-04-04T17:03:09.117591Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $810.00 (1000.00 shares @ $0.81)
+Profit:   $190.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117599Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $24.00 (120.00 shares @ $0.20)
+Profit:   $96.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117609Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $348.25 (429.94 shares @ $0.81)
+Profit:   $81.69
+===========================================================================================
+[2m2026-04-04T17:03:09.117617Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1620.00 (2000.00 shares @ $0.81)
+Profit:   $380.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117626Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $1.93 (1930.00 shares @ $0.00)
+Profit:   $1928.07
+===========================================================================================
+[2m2026-04-04T17:03:09.117635Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117642Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $54.44 (272.20 shares @ $0.20)
+Profit:   $217.76
+===========================================================================================
+[2m2026-04-04T17:03:09.117651Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $99.50 (122.84 shares @ $0.81)
+Profit:   $23.34
+===========================================================================================
+[2m2026-04-04T17:03:09.117658Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4700.00 (5802.47 shares @ $0.81)
+Profit:   $1102.47
+===========================================================================================
+[2m2026-04-04T17:03:09.117666Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0000) by: 0x7f9e2d1df78614564a70becc7fa14aa9a6623a0e
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.117691Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $100.00 (500.00 shares @ $0.20)
+Profit:   $400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117715Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.117729Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $1.00 (1000.00 shares @ $0.00)
+Profit:   $999.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117739Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.50 (12.50 shares @ $0.20)
+Profit:   $10.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117747Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $1.19 (1190.00 shares @ $0.00)
+Profit:   $1188.81
+===========================================================================================
+[2m2026-04-04T17:03:09.117766Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $25.98 (32.08 shares @ $0.81)
+Profit:   $6.10
+===========================================================================================
+[2m2026-04-04T17:03:09.117787Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $200.00 (1000.00 shares @ $0.20)
+Profit:   $800.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117802Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $40.01 (49.40 shares @ $0.81)
+Profit:   $9.39
+===========================================================================================
+[2m2026-04-04T17:03:09.117822Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $324.00 (400.00 shares @ $0.81)
+Profit:   $76.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117836Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.17 shares @ $0.81)
+Profit:   $1.17
+===========================================================================================
+[2m2026-04-04T17:03:09.117845Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $9.00 (11.11 shares @ $0.81)
+Profit:   $2.11
+===========================================================================================
+[2m2026-04-04T17:03:09.117853Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.117873Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $99.49 (122.83 shares @ $0.81)
+Profit:   $23.34
+===========================================================================================
+[2m2026-04-04T17:03:09.117886Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $1.28 (9.86 shares @ $0.13)
+Profit:   $8.58
+===========================================================================================
+[2m2026-04-04T17:03:09.117895Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.90 (14.48 shares @ $0.20)
+Profit:   $11.58
+===========================================================================================
+[2m2026-04-04T17:03:09.117904Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $40.00 (200.00 shares @ $0.20)
+Profit:   $160.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117923Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $40.00 (200.00 shares @ $0.20)
+Profit:   $160.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117937Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $45.89 (56.65 shares @ $0.81)
+Profit:   $10.76
+===========================================================================================
+[2m2026-04-04T17:03:09.117945Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.117954Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.117972Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.00 (10.00 shares @ $0.20)
+Profit:   $8.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117985Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $30.00 (150.00 shares @ $0.20)
+Profit:   $120.00
+===========================================================================================
+[2m2026-04-04T17:03:09.117996Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.57 (7.85 shares @ $0.20)
+Profit:   $6.28
+===========================================================================================
+[2m2026-04-04T17:03:09.118004Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $4.66 (5.30 shares @ $0.88)
+Profit:   $0.64
+===========================================================================================
+[2m2026-04-04T17:03:09.118023Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118036Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118045Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $100.00 (500.00 shares @ $0.20)
+Profit:   $400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118054Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $200.00 (1000.00 shares @ $0.20)
+Profit:   $800.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118072Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $3.67 (4.17 shares @ $0.88)
+Profit:   $0.50
+===========================================================================================
+[2m2026-04-04T17:03:09.118086Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.38 (4.17 shares @ $0.81)
+Profit:   $0.79
+===========================================================================================
+[2m2026-04-04T17:03:09.118095Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $0.65 (5.00 shares @ $0.13)
+Profit:   $4.35
+===========================================================================================
+[2m2026-04-04T17:03:09.118103Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $0.40 (2.00 shares @ $0.20)
+Profit:   $1.60
+===========================================================================================
+[2m2026-04-04T17:03:09.118113Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $16.71 (83.57 shares @ $0.20)
+Profit:   $66.86
+===========================================================================================
+[2m2026-04-04T17:03:09.118121Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $100.00 (500.00 shares @ $0.20)
+Profit:   $400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118129Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $11.73 (14.48 shares @ $0.81)
+Profit:   $2.75
+===========================================================================================
+[2m2026-04-04T17:03:09.118137Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $8.68 (9.86 shares @ $0.88)
+Profit:   $1.18
+===========================================================================================
+[2m2026-04-04T17:03:09.118145Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.118154Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.16 (7.00 shares @ $0.88)
+Profit:   $0.84
+===========================================================================================
+[2m2026-04-04T17:03:09.118162Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $0.40 (2.00 shares @ $0.20)
+Profit:   $1.60
+===========================================================================================
+[2m2026-04-04T17:03:09.118170Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.95 (13.52 shares @ $0.81)
+Profit:   $2.57
+===========================================================================================
+[2m2026-04-04T17:03:09.118178Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $808.43 (998.06 shares @ $0.81)
+Profit:   $189.63
+===========================================================================================
+[2m2026-04-04T17:03:09.118186Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $656.91 (811.00 shares @ $0.81)
+Profit:   $154.09
+===========================================================================================
+[2m2026-04-04T17:03:09.118196Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $24.79 (123.95 shares @ $0.20)
+Profit:   $99.16
+===========================================================================================
+[2m2026-04-04T17:03:09.118204Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.20 (6.02 shares @ $0.20)
+Profit:   $4.82
+===========================================================================================
+[2m2026-04-04T17:03:09.118212Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $6.00 (30.00 shares @ $0.20)
+Profit:   $24.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118220Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $5.00 (5000.00 shares @ $0.00)
+Profit:   $4995.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118229Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $656.91 (811.00 shares @ $0.81)
+Profit:   $154.09
+===========================================================================================
+[2m2026-04-04T17:03:09.118237Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $1.00 (1000.00 shares @ $0.00)
+Profit:   $999.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118246Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.80 (7.16 shares @ $0.81)
+Profit:   $1.36
+===========================================================================================
+[2m2026-04-04T17:03:09.118254Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.17 shares @ $0.81)
+Profit:   $1.17
+===========================================================================================
+[2m2026-04-04T17:03:09.118262Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $2.59 (2.94 shares @ $0.88)
+Profit:   $0.35
+===========================================================================================
+[2m2026-04-04T17:03:09.118270Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $100.33 (123.86 shares @ $0.81)
+Profit:   $23.53
+===========================================================================================
+[2m2026-04-04T17:03:09.118279Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1000.00 (5000.00 shares @ $0.20)
+Profit:   $4000.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118287Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $493.41 (2467.05 shares @ $0.20)
+Profit:   $1973.64
+===========================================================================================
+[2m2026-04-04T17:03:09.118295Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.118303Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $7.04 (8.00 shares @ $0.88)
+Profit:   $0.96
+===========================================================================================
+[2m2026-04-04T17:03:09.118322Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (50.00 shares @ $0.20)
+Profit:   $40.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118334Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (50.00 shares @ $0.20)
+Profit:   $40.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118343Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $50.00 (61.73 shares @ $0.81)
+Profit:   $11.73
+===========================================================================================
+[2m2026-04-04T17:03:09.118352Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $100.00 (500.00 shares @ $0.20)
+Profit:   $400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118360Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.00 (12.35 shares @ $0.81)
+Profit:   $2.35
+===========================================================================================
+[2m2026-04-04T17:03:09.118369Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $1.50 (11.56 shares @ $0.13)
+Profit:   $10.06
+===========================================================================================
+[2m2026-04-04T17:03:09.118377Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $0.40 (2.00 shares @ $0.20)
+Profit:   $1.60
+===========================================================================================
+[2m2026-04-04T17:03:09.118385Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.97 (9.86 shares @ $0.20)
+Profit:   $7.89
+===========================================================================================
+[2m2026-04-04T17:03:09.118393Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $104.02 (804.77 shares @ $0.13)
+Profit:   $700.75
+===========================================================================================
+[2m2026-04-04T17:03:09.118401Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $15.00 (18.52 shares @ $0.81)
+Profit:   $3.52
+===========================================================================================
+[2m2026-04-04T17:03:09.118409Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $655.93 (737.00 shares @ $0.89)
+Profit:   $81.07
+===========================================================================================
+[2m2026-04-04T17:03:09.118417Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0004) by: 0x0c84fb52569258eaa507757d529b06c034a989f6
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.118440Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $7.12 (8.00 shares @ $0.89)
+Profit:   $0.88
+===========================================================================================
+[2m2026-04-04T17:03:09.118461Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $999.00 (1233.33 shares @ $0.81)
+Profit:   $234.33
+===========================================================================================
+[2m2026-04-04T17:03:09.118473Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $162.00 (200.00 shares @ $0.81)
+Profit:   $38.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118482Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $0.40 (2.00 shares @ $0.20)
+Profit:   $1.60
+===========================================================================================
+[2m2026-04-04T17:03:09.118491Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $7.02 (7020.00 shares @ $0.00)
+Profit:   $7012.98
+===========================================================================================
+[2m2026-04-04T17:03:09.118500Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $6.00 (30.00 shares @ $0.20)
+Profit:   $24.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118508Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $0.40 (2.00 shares @ $0.20)
+Profit:   $1.60
+===========================================================================================
+[2m2026-04-04T17:03:09.118516Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $0.26 (2.00 shares @ $0.13)
+Profit:   $1.74
+===========================================================================================
+[2m2026-04-04T17:03:09.118525Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.00 (12.35 shares @ $0.81)
+Profit:   $2.35
+===========================================================================================
+[2m2026-04-04T17:03:09.118533Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $10.15 (11.40 shares @ $0.89)
+Profit:   $1.25
+===========================================================================================
+[2m2026-04-04T17:03:09.118541Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $6.68 (55.68 shares @ $0.12)
+Profit:   $49.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118548Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $105.00 (525.00 shares @ $0.20)
+Profit:   $420.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118557Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $6.27 (7.04 shares @ $0.89)
+Profit:   $0.77
+===========================================================================================
+[2m2026-04-04T17:03:09.118565Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $0.26 (2.00 shares @ $0.13)
+Profit:   $1.74
+===========================================================================================
+[2m2026-04-04T17:03:09.118574Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $0.40 (2.00 shares @ $0.20)
+Profit:   $1.60
+===========================================================================================
+[2m2026-04-04T17:03:09.118582Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $1230.51 (10254.28 shares @ $0.12)
+Profit:   $9023.77
+===========================================================================================
+[2m2026-04-04T17:03:09.118590Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0000) by: 0x35417b3d09d7a0991f75d7cc95162a6e34d7462e
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.118601Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $100.00 (112.36 shares @ $0.89)
+Profit:   $12.36
+===========================================================================================
+[2m2026-04-04T17:03:09.118609Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $8.00 (40.00 shares @ $0.20)
+Profit:   $32.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118617Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $20.00 (100.00 shares @ $0.20)
+Profit:   $80.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118625Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $7.99 (9.86 shares @ $0.81)
+Profit:   $1.87
+===========================================================================================
+[2m2026-04-04T17:03:09.118633Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118641Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2.00 (2.47 shares @ $0.81)
+Profit:   $0.47
+===========================================================================================
+[2m2026-04-04T17:03:09.118649Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (50.00 shares @ $0.20)
+Profit:   $40.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118659Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $400.00 (493.83 shares @ $0.81)
+Profit:   $93.83
+===========================================================================================
+[2m2026-04-04T17:03:09.118667Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $38.41 (47.42 shares @ $0.81)
+Profit:   $9.01
+===========================================================================================
+[2m2026-04-04T17:03:09.118675Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (25.00 shares @ $0.20)
+Profit:   $20.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118683Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (50.00 shares @ $0.20)
+Profit:   $40.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118692Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $35.03 (291.92 shares @ $0.12)
+Profit:   $256.89
+===========================================================================================
+[2m2026-04-04T17:03:09.118700Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $1.00 (1000.00 shares @ $0.00)
+Profit:   $999.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118708Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $50.00 (61.73 shares @ $0.81)
+Profit:   $11.73
+===========================================================================================
+[2m2026-04-04T17:03:09.118716Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $40.00 (200.00 shares @ $0.20)
+Profit:   $160.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118725Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (50.00 shares @ $0.20)
+Profit:   $40.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118733Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $7.12 (8.00 shares @ $0.89)
+Profit:   $0.88
+===========================================================================================
+[2m2026-04-04T17:03:09.118743Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (50.00 shares @ $0.20)
+Profit:   $40.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118751Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.89 (9.43 shares @ $0.20)
+Profit:   $7.54
+===========================================================================================
+[2m2026-04-04T17:03:09.118759Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $20.00 (100.00 shares @ $0.20)
+Profit:   $80.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118768Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.00 (12.35 shares @ $0.81)
+Profit:   $2.35
+===========================================================================================
+[2m2026-04-04T17:03:09.118776Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (25.00 shares @ $0.20)
+Profit:   $20.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118784Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $500.00 (2500.00 shares @ $0.20)
+Profit:   $2000.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118792Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2557.17 (3157.00 shares @ $0.81)
+Profit:   $599.83
+===========================================================================================
+[2m2026-04-04T17:03:09.118801Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $20.00 (24.69 shares @ $0.81)
+Profit:   $4.69
+===========================================================================================
+[2m2026-04-04T17:03:09.118809Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.118818Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $7.12 (8.00 shares @ $0.89)
+Profit:   $0.88
+===========================================================================================
+[2m2026-04-04T17:03:09.118835Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $50.00 (250.00 shares @ $0.20)
+Profit:   $200.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118843Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $0.40 (2.00 shares @ $0.20)
+Profit:   $1.60
+===========================================================================================
+[2m2026-04-04T17:03:09.118851Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $0.24 (2.00 shares @ $0.12)
+Profit:   $1.76
+===========================================================================================
+[2m2026-04-04T17:03:09.118859Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $1.22 (1.37 shares @ $0.89)
+Profit:   $0.15
+===========================================================================================
+[2m2026-04-04T17:03:09.118868Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $400.00 (2000.00 shares @ $0.20)
+Profit:   $1600.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118876Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $200.00 (1000.00 shares @ $0.20)
+Profit:   $800.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118885Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $7.64 (9.43 shares @ $0.81)
+Profit:   $1.79
+===========================================================================================
+[2m2026-04-04T17:03:09.118893Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $361.08 (3009.00 shares @ $0.12)
+Profit:   $2647.92
+===========================================================================================
+[2m2026-04-04T17:03:09.118901Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $40.00 (200.00 shares @ $0.20)
+Profit:   $160.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118911Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $71.27 (356.35 shares @ $0.20)
+Profit:   $285.08
+===========================================================================================
+[2m2026-04-04T17:03:09.118931Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118943Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $600.00 (5000.00 shares @ $0.12)
+Profit:   $4400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118952Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.24 (4.00 shares @ $0.81)
+Profit:   $0.76
+===========================================================================================
+[2m2026-04-04T17:03:09.118960Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $7.12 (8.00 shares @ $0.89)
+Profit:   $0.88
+===========================================================================================
+[2m2026-04-04T17:03:09.118968Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $19.60 (24.20 shares @ $0.81)
+Profit:   $4.60
+===========================================================================================
+[2m2026-04-04T17:03:09.118976Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $91.92 (766.00 shares @ $0.12)
+Profit:   $674.08
+===========================================================================================
+[2m2026-04-04T17:03:09.118985Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.118994Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $1.03 (1.16 shares @ $0.89)
+Profit:   $0.13
+===========================================================================================
+[2m2026-04-04T17:03:09.119002Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $600.00 (5000.00 shares @ $0.12)
+Profit:   $4400.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119012Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $2.08 (2.34 shares @ $0.89)
+Profit:   $0.26
+===========================================================================================
+[2m2026-04-04T17:03:09.119020Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $1200.00 (10000.00 shares @ $0.12)
+Profit:   $8800.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119037Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0005) by: 0x5cd5c8d7a17c78d7389d8b87b611aed83322ac33
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.119066Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.80 (14.00 shares @ $0.20)
+Profit:   $11.20
+===========================================================================================
+[2m2026-04-04T17:03:09.119096Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $7.60 (38.00 shares @ $0.20)
+Profit:   $30.40
+===========================================================================================
+[2m2026-04-04T17:03:09.119108Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119118Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $16200.00 (20000.00 shares @ $0.81)
+Profit:   $3800.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119127Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $2171.55 (19741.36 shares @ $0.11)
+Profit:   $17569.81
+===========================================================================================
+[2m2026-04-04T17:03:09.119136Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $8.00 (40.00 shares @ $0.20)
+Profit:   $32.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119144Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.17 shares @ $0.81)
+Profit:   $1.17
+===========================================================================================
+[2m2026-04-04T17:03:09.119154Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (25.00 shares @ $0.20)
+Profit:   $20.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119162Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.62 (2.00 shares @ $0.81)
+Profit:   $0.38
+===========================================================================================
+[2m2026-04-04T17:03:09.119170Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $15.40 (140.00 shares @ $0.11)
+Profit:   $124.60
+===========================================================================================
+[2m2026-04-04T17:03:09.119178Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $24.00 (120.00 shares @ $0.20)
+Profit:   $96.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119187Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $4.00 (20.00 shares @ $0.20)
+Profit:   $16.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119195Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $3.52 (32.00 shares @ $0.11)
+Profit:   $28.48
+===========================================================================================
+[2m2026-04-04T17:03:09.119204Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $90.00 (100.00 shares @ $0.90)
+Profit:   $10.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119212Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $200.00 (1000.00 shares @ $0.20)
+Profit:   $800.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119247Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.67 (8.36 shares @ $0.20)
+Profit:   $6.69
+===========================================================================================
+[2m2026-04-04T17:03:09.119268Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $100.00 (123.46 shares @ $0.81)
+Profit:   $23.46
+===========================================================================================
+[2m2026-04-04T17:03:09.119282Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $16.50 (150.00 shares @ $0.11)
+Profit:   $133.50
+===========================================================================================
+[2m2026-04-04T17:03:09.119292Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $7.83 (9.67 shares @ $0.81)
+Profit:   $1.84
+===========================================================================================
+[2m2026-04-04T17:03:09.119300Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $4.00 (20.00 shares @ $0.20)
+Profit:   $16.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119312Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $50.00 (250.00 shares @ $0.20)
+Profit:   $200.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119320Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.00 (12.35 shares @ $0.81)
+Profit:   $2.35
+===========================================================================================
+[2m2026-04-04T17:03:09.119328Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $100.00 (123.46 shares @ $0.81)
+Profit:   $23.46
+===========================================================================================
+[2m2026-04-04T17:03:09.119347Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119355Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119363Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.17 shares @ $0.81)
+Profit:   $1.17
+===========================================================================================
+[2m2026-04-04T17:03:09.119371Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $10.00 (90.91 shares @ $0.11)
+Profit:   $80.91
+===========================================================================================
+[2m2026-04-04T17:03:09.119381Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $2.70 (3.00 shares @ $0.90)
+Profit:   $0.30
+===========================================================================================
+[2m2026-04-04T17:03:09.119389Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $50.00 (250.00 shares @ $0.20)
+Profit:   $200.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119397Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $198.09 (244.56 shares @ $0.81)
+Profit:   $46.47
+===========================================================================================
+[2m2026-04-04T17:03:09.119405Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $20.00 (24.69 shares @ $0.81)
+Profit:   $4.69
+===========================================================================================
+[2m2026-04-04T17:03:09.119413Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $6.77 (8.36 shares @ $0.81)
+Profit:   $1.59
+===========================================================================================
+[2m2026-04-04T17:03:09.119421Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $4.76 (23.80 shares @ $0.20)
+Profit:   $19.04
+===========================================================================================
+[2m2026-04-04T17:03:09.119429Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $8.10 (9.00 shares @ $0.90)
+Profit:   $0.90
+===========================================================================================
+[2m2026-04-04T17:03:09.119437Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.20 (1.48 shares @ $0.81)
+Profit:   $0.28
+===========================================================================================
+[2m2026-04-04T17:03:09.119445Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $70.91 (354.55 shares @ $0.20)
+Profit:   $283.64
+===========================================================================================
+[2m2026-04-04T17:03:09.119453Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $3.00 (3.70 shares @ $0.81)
+Profit:   $0.70
+===========================================================================================
+[2m2026-04-04T17:03:09.119463Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.00 shares @ $0.20)
+Profit:   $4.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119472Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119480Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (50.00 shares @ $0.20)
+Profit:   $40.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119488Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $40.66 (50.20 shares @ $0.81)
+Profit:   $9.54
+===========================================================================================
+[2m2026-04-04T17:03:09.119497Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $20.00 (100.00 shares @ $0.20)
+Profit:   $80.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119505Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $101.23 (506.15 shares @ $0.20)
+Profit:   $404.92
+===========================================================================================
+[2m2026-04-04T17:03:09.119513Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $172.87 (213.42 shares @ $0.81)
+Profit:   $40.55
+===========================================================================================
+[2m2026-04-04T17:03:09.119526Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $4.00 (20.00 shares @ $0.20)
+Profit:   $16.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119536Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $50.00 (250.00 shares @ $0.20)
+Profit:   $200.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119569Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $13.00 (65.00 shares @ $0.20)
+Profit:   $52.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119583Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119592Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (25.00 shares @ $0.20)
+Profit:   $20.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119600Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.22 (11.11 shares @ $0.20)
+Profit:   $8.89
+===========================================================================================
+[2m2026-04-04T17:03:09.119608Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $110.00 (1000.00 shares @ $0.11)
+Profit:   $890.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119617Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $165.00 (1500.00 shares @ $0.11)
+Profit:   $1335.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119625Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.00 (10.00 shares @ $0.20)
+Profit:   $8.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119634Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $20.00 (100.00 shares @ $0.20)
+Profit:   $80.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119642Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119653Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $9.00 (11.11 shares @ $0.81)
+Profit:   $2.11
+===========================================================================================
+[2m2026-04-04T17:03:09.119660Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $810.00 (1000.00 shares @ $0.81)
+Profit:   $190.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119669Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $810.00 (1000.00 shares @ $0.81)
+Profit:   $190.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119677Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $3.00 (15.00 shares @ $0.20)
+Profit:   $12.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119694Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $7.32 (8.93 shares @ $0.82)
+Profit:   $1.61
+===========================================================================================
+[2m2026-04-04T17:03:09.119702Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $8.20 (10.00 shares @ $0.82)
+Profit:   $1.80
+===========================================================================================
+[2m2026-04-04T17:03:09.119710Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1536.73 (1874.06 shares @ $0.82)
+Profit:   $337.33
+===========================================================================================
+[2m2026-04-04T17:03:09.119718Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $3496.89 (17484.45 shares @ $0.20)
+Profit:   $13987.56
+===========================================================================================
+[2m2026-04-04T17:03:09.119727Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0253) by: 0x5be960cecd85bbe270dcabed3b3be5a704cf4ddc
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.119752Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $9.00 (11.11 shares @ $0.81)
+Profit:   $2.11
+===========================================================================================
+[2m2026-04-04T17:03:09.119765Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.10 (5.79 shares @ $0.19)
+Profit:   $4.69
+===========================================================================================
+[2m2026-04-04T17:03:09.119775Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $19.96 (105.03 shares @ $0.19)
+Profit:   $85.07
+===========================================================================================
+[2m2026-04-04T17:03:09.119784Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.12 (5.89 shares @ $0.19)
+Profit:   $4.77
+===========================================================================================
+[2m2026-04-04T17:03:09.119795Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $8681.79 (47439.67 shares @ $0.18)
+Profit:   $38757.88
+===========================================================================================
+[2m2026-04-04T17:03:09.119814Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> 📊 PROFILER ALERT!
+>> Anomalously large trade (p=0.0000) by: 0xbe482cd6e5183be8767f03b48ebc3ff35769683f
+>> Fetching activity profile...
+[2m2026-04-04T17:03:09.119831Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $11249.13 (59076.22 shares @ $0.19)
+Profit:   $47827.09
+===========================================================================================
+[2m2026-04-04T17:03:09.119845Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.00 (1.20 shares @ $0.83)
+Profit:   $0.20
+===========================================================================================
+[2m2026-04-04T17:03:09.119864Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $590.94 (3283.00 shares @ $0.18)
+Profit:   $2692.06
+===========================================================================================
+[2m2026-04-04T17:03:09.119878Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $250.00 (301.20 shares @ $0.83)
+Profit:   $51.20
+===========================================================================================
+[2m2026-04-04T17:03:09.119887Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119896Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2000.00 (2409.64 shares @ $0.83)
+Profit:   $409.64
+===========================================================================================
+[2m2026-04-04T17:03:09.119904Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $65.57 (79.00 shares @ $0.83)
+Profit:   $13.43
+===========================================================================================
+[2m2026-04-04T17:03:09.119914Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2.66 (3.20 shares @ $0.83)
+Profit:   $0.54
+===========================================================================================
+[2m2026-04-04T17:03:09.119922Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $70.56 (392.00 shares @ $0.18)
+Profit:   $321.44
+===========================================================================================
+[2m2026-04-04T17:03:09.119930Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4150.00 (5000.00 shares @ $0.83)
+Profit:   $850.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119939Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.80 (10.00 shares @ $0.18)
+Profit:   $8.20
+===========================================================================================
+[2m2026-04-04T17:03:09.119947Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $166.00 (200.00 shares @ $0.83)
+Profit:   $34.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119955Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.56 shares @ $0.18)
+Profit:   $4.56
+===========================================================================================
+[2m2026-04-04T17:03:09.119963Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.15 (5.00 shares @ $0.83)
+Profit:   $0.85
+===========================================================================================
+[2m2026-04-04T17:03:09.119972Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.119980Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $1.00 (9.09 shares @ $0.11)
+Profit:   $8.09
+===========================================================================================
+[2m2026-04-04T17:03:09.119988Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.56 shares @ $0.18)
+Profit:   $4.56
+===========================================================================================
+[2m2026-04-04T17:03:09.119998Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $2.34 (2.60 shares @ $0.90)
+Profit:   $0.26
+===========================================================================================
+[2m2026-04-04T17:03:09.120006Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2.14 (2.58 shares @ $0.83)
+Profit:   $0.44
+===========================================================================================
+[2m2026-04-04T17:03:09.120014Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $0.90 (5.00 shares @ $0.18)
+Profit:   $4.10
+===========================================================================================
+[2m2026-04-04T17:03:09.120022Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $5.00 (6.02 shares @ $0.83)
+Profit:   $1.02
+===========================================================================================
+[2m2026-04-04T17:03:09.120030Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $15.24 (84.67 shares @ $0.18)
+Profit:   $69.43
+===========================================================================================
+[2m2026-04-04T17:03:09.120039Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.11 (11.74 shares @ $0.18)
+Profit:   $9.63
+===========================================================================================
+[2m2026-04-04T17:03:09.120047Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.00 (1.20 shares @ $0.83)
+Profit:   $0.20
+===========================================================================================
+[2m2026-04-04T17:03:09.120065Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $15.00 (18.07 shares @ $0.83)
+Profit:   $3.07
+===========================================================================================
+[2m2026-04-04T17:03:09.120077Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.15 (5.00 shares @ $0.83)
+Profit:   $0.85
+===========================================================================================
+[2m2026-04-04T17:03:09.120085Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120095Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $3.69 (20.50 shares @ $0.18)
+Profit:   $16.81
+===========================================================================================
+[2m2026-04-04T17:03:09.120103Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1130.42 (1361.95 shares @ $0.83)
+Profit:   $231.53
+===========================================================================================
+[2m2026-04-04T17:03:09.120111Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.00 (11.11 shares @ $0.18)
+Profit:   $9.11
+===========================================================================================
+[2m2026-04-04T17:03:09.120120Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.56 shares @ $0.18)
+Profit:   $4.56
+===========================================================================================
+[2m2026-04-04T17:03:09.120128Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $450.00 (2500.00 shares @ $0.18)
+Profit:   $2050.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120137Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $1.00 (1000.00 shares @ $0.00)
+Profit:   $999.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120145Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.15 (5.00 shares @ $0.83)
+Profit:   $0.85
+===========================================================================================
+[2m2026-04-04T17:03:09.120153Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120164Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by March 31?
+Outcome:  Yes
+Value:    $2.00 (2000.00 shares @ $0.00)
+Profit:   $1998.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120184Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $83.00 (100.00 shares @ $0.83)
+Profit:   $17.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120198Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $9.74 (11.74 shares @ $0.83)
+Profit:   $2.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120207Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (55.56 shares @ $0.18)
+Profit:   $45.56
+===========================================================================================
+[2m2026-04-04T17:03:09.120215Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (27.78 shares @ $0.18)
+Profit:   $22.78
+===========================================================================================
+[2m2026-04-04T17:03:09.120223Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.15 (5.00 shares @ $0.83)
+Profit:   $0.85
+===========================================================================================
+[2m2026-04-04T17:03:09.120231Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120239Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $78.40 (435.56 shares @ $0.18)
+Profit:   $357.16
+===========================================================================================
+[2m2026-04-04T17:03:09.120247Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $20.00 (111.11 shares @ $0.18)
+Profit:   $91.11
+===========================================================================================
+[2m2026-04-04T17:03:09.120255Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.01 (5.61 shares @ $0.18)
+Profit:   $4.60
+===========================================================================================
+[2m2026-04-04T17:03:09.120263Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.00 (5.56 shares @ $0.18)
+Profit:   $4.56
+===========================================================================================
+[2m2026-04-04T17:03:09.120274Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $900.00 (5000.00 shares @ $0.18)
+Profit:   $4100.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120295Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $21.00 (116.67 shares @ $0.18)
+Profit:   $95.67
+===========================================================================================
+[2m2026-04-04T17:03:09.120308Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.00 (12.05 shares @ $0.83)
+Profit:   $2.05
+===========================================================================================
+[2m2026-04-04T17:03:09.120317Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.15 (5.00 shares @ $0.83)
+Profit:   $0.85
+===========================================================================================
+[2m2026-04-04T17:03:09.120326Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120334Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $900.00 (1000.00 shares @ $0.90)
+Profit:   $100.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120342Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $2490.00 (3000.00 shares @ $0.83)
+Profit:   $510.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120351Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $1.79 (9.93 shares @ $0.18)
+Profit:   $8.14
+===========================================================================================
+[2m2026-04-04T17:03:09.120359Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.00 (1.20 shares @ $0.83)
+Profit:   $0.20
+===========================================================================================
+[2m2026-04-04T17:03:09.120367Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $1.00 (1.20 shares @ $0.83)
+Profit:   $0.20
+===========================================================================================
+[2m2026-04-04T17:03:09.120375Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $10.00 (12.05 shares @ $0.83)
+Profit:   $2.05
+===========================================================================================
+[2m2026-04-04T17:03:09.120385Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $9.00 (10.00 shares @ $0.90)
+Profit:   $1.00
+===========================================================================================
+[2m2026-04-04T17:03:09.120393Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  Yes
+Value:    $4.15 (5.00 shares @ $0.83)
+Profit:   $0.85
+===========================================================================================
+[2m2026-04-04T17:03:09.120404Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  No
+Value:    $5.94 (54.00 shares @ $0.11)
+Profit:   $48.06
+===========================================================================================
+[2m2026-04-04T17:03:09.120424Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $5.00 (27.78 shares @ $0.18)
+Profit:   $22.78
+===========================================================================================
+[2m2026-04-04T17:03:09.120437Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (55.56 shares @ $0.18)
+Profit:   $45.56
+===========================================================================================
+[2m2026-04-04T17:03:09.120447Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (55.56 shares @ $0.18)
+Profit:   $45.56
+===========================================================================================
+[2m2026-04-04T17:03:09.120455Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $11.03 (61.28 shares @ $0.18)
+Profit:   $50.25
+===========================================================================================
+[2m2026-04-04T17:03:09.120463Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $2.00 (11.11 shares @ $0.18)
+Profit:   $9.11
+===========================================================================================
+[2m2026-04-04T17:03:09.120472Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by December 31?
+Outcome:  Yes
+Value:    $10.00 (11.11 shares @ $0.90)
+Profit:   $1.11
+===========================================================================================
+[2m2026-04-04T17:03:09.120480Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+======================================= 🚨 TRADE 🚨 =======================================
+Market:   US forces enter Iran by April 30?
+Outcome:  No
+Value:    $10.00 (55.56 shares @ $0.18)
+Profit:   $45.56
+===========================================================================================
+
+[UPDATED MARKET STATISTICS]
+Market Question                                              | Avg Value    | Std Dev     
+==========================================================================================
+US forces enter Iran by January 31?                          | $0.00        | $0.00       
+US forces enter Iran by March 7?                             | $0.00        | $0.00       
+US forces enter Iran by March 1?                             | $0.00        | $0.00       
+US forces enter Iran by February 28?                         | $0.00        | $0.00       
+US forces enter Iran by March 31?                            | $12.04       | $13.00      
+US forces enter Iran by March 3?                             | $0.00        | $0.00       
+US forces enter Iran by April 30?                            | $242.39      | $1026.84    
+US forces enter Iran by March 14?                            | $0.00        | $0.00       
+US forces enter Iran by December 31?                         | $134.09      | $361.92     
+
+[2m2026-04-04T17:03:09.561463Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x7f9e2d1df78614564a70becc7fa14aa9a6623a0e
+>> Preview: [{"asset":"2916184120206223749839849644877707470354946028257066951797428049170871002238","bio":"","conditionId":"0x6d0e09d0f04572d9b1adad84703458b0297bc5603b69dccbde93147ee4443246","eventSlug":"us-for...
+[2m2026-04-04T17:03:09.581457Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x5cd5c8d7a17c78d7389d8b87b611aed83322ac33
+>> Preview: [{"asset":"999431386086915652803375764895435840752699372365775899613514207437695781135","bio":"","conditionId":"0xe4b9a52d2bb336ff9d84799b70e72e8e5f4507df881af60f3f4daeb9f541a80e","eventSlug":"us-forc...
+[2m2026-04-04T17:03:09.590198Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x35417b3d09d7a0991f75d7cc95162a6e34d7462e
+>> Preview: [{"asset":"112334119315898655379557681849814313140380376299028916203775469724730149194325","bio":"","conditionId":"0x068d4f079da544e312b1a7b86e2c5dd39d3fc6a0f5a21b0ec866d1ff34767839","eventSlug":"next...
+[2m2026-04-04T17:03:09.600891Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x335592400e402c26583ce8b56d12605e9548a126
+>> Preview: [{"asset":"2916184120206223749839849644877707470354946028257066951797428049170871002238","bio":"","conditionId":"0x6d0e09d0f04572d9b1adad84703458b0297bc5603b69dccbde93147ee4443246","eventSlug":"us-for...
+[2m2026-04-04T17:03:09.606946Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x2974bd0059e48f215c391882976e0f1b4c8c9c23
+>> Preview: [{"asset":"2916184120206223749839849644877707470354946028257066951797428049170871002238","bio":"","conditionId":"0x6d0e09d0f04572d9b1adad84703458b0297bc5603b69dccbde93147ee4443246","eventSlug":"us-for...
+[2m2026-04-04T17:03:09.614447Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x5be960cecd85bbe270dcabed3b3be5a704cf4ddc
+>> Preview: [{"asset":"76533108781962275310651165149634079251899733930834190485860627580128626747247","bio":"","conditionId":"0x6d0e09d0f04572d9b1adad84703458b0297bc5603b69dccbde93147ee4443246","eventSlug":"us-fo...
+[2m2026-04-04T17:03:09.623391Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x4133f8ff4b624c1d1b4ddfbf1da803c1e0d4ea5d
+>> Preview: [{"asset":"76533108781962275310651165149634079251899733930834190485860627580128626747247","bio":"Professor Jiang. I analyze the past to predict the future.","conditionId":"0x6d0e09d0f04572d9b1adad8470...
+[2m2026-04-04T17:03:09.633063Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x88c4919de76e526d55a32c1f8afb439dd1f1129a
+>> Preview: [{"asset":"15238851204456215333787742068673365519018761532915041731481308270942607427093","bio":"","conditionId":"0x39104f7f48f4f379de4162f0cf64c24bf1ccb1f786fd7fafb3fbfb879fffedcc","eventSlug":"what-...
+[2m2026-04-04T17:03:09.638233Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0xbe482cd6e5183be8767f03b48ebc3ff35769683f
+>> Preview: [{"asset":"76533108781962275310651165149634079251899733930834190485860627580128626747247","bio":"","conditionId":"0x6d0e09d0f04572d9b1adad84703458b0297bc5603b69dccbde93147ee4443246","eventSlug":"us-fo...
+[2m2026-04-04T17:03:09.638754Z[0m [32m INFO[0m [2mpmit::investigator::user_activity_profiler[0m[2m:[0m 
+>> ✅ PROFILE FETCHED
+>> Address: 0x0c84fb52569258eaa507757d529b06c034a989f6
+>> Preview: [{"asset":"38667196958602416137463628517439560119304765709104570192447644733106171420112","bio":"","conditionId":"0xa01d48a973e40770719dab42faf1aeae5da4376d9eca46e77265c7551d1be0f7","eventSlug":"venez...
+[2m2026-04-04T17:04:06.436870Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Shutdown signal received. Cleaning up...
+[2m2026-04-04T17:04:06.437251Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Background processing task shutting down.
+[2m2026-04-04T17:04:06.465949Z[0m [32m INFO[0m [2mpmit[0m[2m:[0m Shutdown checkpoint complete.

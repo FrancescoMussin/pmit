@@ -13,17 +13,18 @@ pub struct Config {
     pub global_trades_limit: usize,
     /// The threshold in USD for considering a trade as "large".
     pub large_trade_threshold: f64,
-    /// Exposure score threshold used by routing after exposure scoring.
-    pub exposure_threshold: f64,
-    /// Softmax temperature used by the sentence-BERT exposure scorer.
-    pub exposure_temperature: f64,
+    /// The base URL for the Polymarket Gamma API for events and markets.
+    pub polymarket_gamma_api_url: String,
     /// The number of seconds after which to warn about a stale feed.
     pub stale_feed_warn_secs: u64,
     /// The number of consecutive polls after which to consider the feed stale.
     pub stale_feed_consecutive_polls: u32,
+    /// The probability threshold (p-value) for triggering a profile.
+    pub anomaly_probability_threshold: f64,
+    /// The decay factor for the EWMA distribution.
+    pub ewma_alpha: f64,
     pub trades_db_path: String,
     pub user_history_db_path: String,
-    pub training_db_path: String,
 }
 
 impl Config {
@@ -55,19 +56,8 @@ impl Config {
             .parse()
             .context("LARGE_TRADE_THRESHOLD must be a valid number")?;
 
-        let exposure_threshold: f64 = env::var("EXPOSURE_THRESHOLD")
-            .unwrap_or_else(|_| "0.60".to_string())
-            .parse()
-            .context("EXPOSURE_THRESHOLD must be a valid number")?;
-
-        let exposure_temperature: f64 = env::var("EXPOSURE_TEMPERATURE")
-            .unwrap_or_else(|_| "0.30".to_string())
-            .parse()
-            .context("EXPOSURE_TEMPERATURE must be a valid number")?;
-
-        if exposure_temperature <= 0.0 {
-            anyhow::bail!("EXPOSURE_TEMPERATURE must be > 0");
-        }
+        let polymarket_gamma_api_url = env::var("POLYMARKET_GAMMA_API_URL")
+            .unwrap_or_else(|_| "https://gamma-api.polymarket.com".to_string());
 
         let stale_feed_warn_secs: u64 = env::var("STALE_FEED_WARN_SECS")
             .unwrap_or_else(|_| "90".to_string())
@@ -79,6 +69,16 @@ impl Config {
             .parse()
             .context("STALE_FEED_CONSECUTIVE_POLLS must be a valid number")?;
 
+        let anomaly_probability_threshold: f64 = env::var("ANOMALY_PROBABILITY_THRESHOLD")
+            .unwrap_or_else(|_| "0.05".to_string())
+            .parse()
+            .context("ANOMALY_PROBABILITY_THRESHOLD must be a valid number")?;
+
+        let ewma_alpha: f64 = env::var("EWMA_ALPHA")
+            .unwrap_or_else(|_| "0.05".to_string())
+            .parse()
+            .context("EWMA_ALPHA must be a valid number")?;
+
         let trades_db_path = env::var("TRADES_DB_PATH")
             .or_else(|_| env::var("SQLITE_DB_PATH"))
             .unwrap_or_else(|_| "./databases/trades.db".to_string());
@@ -86,21 +86,18 @@ impl Config {
         let user_history_db_path = env::var("USER_HISTORY_DB_PATH")
             .unwrap_or_else(|_| "./databases/user_history.db".to_string());
 
-        let training_db_path =
-            env::var("TRAINING_DB_PATH").unwrap_or_else(|_| "./databases/training.db".to_string());
-
         Ok(Config {
             polymarket_data_api_url,
             poll_interval_secs,
             global_trades_limit,
             large_trade_threshold,
-            exposure_threshold,
-            exposure_temperature,
+            polymarket_gamma_api_url,
             stale_feed_warn_secs,
             stale_feed_consecutive_polls,
+            anomaly_probability_threshold,
+            ewma_alpha,
             trades_db_path,
             user_history_db_path,
-            training_db_path,
         })
     }
 }
@@ -116,13 +113,10 @@ mod tests {
         unsafe {
             env::remove_var("POLL_INTERVAL_SECS");
             env::remove_var("GLOBAL_TRADES_LIMIT");
-            env::remove_var("EXPOSURE_TEMPERATURE");
         }
-
         let config = Config::parse_from_env().expect("Should load with defaults");
         assert_eq!(config.poll_interval_secs, 10);
         assert_eq!(config.global_trades_limit, 1000);
-        assert_eq!(config.exposure_temperature, 0.30);
     }
 
     #[test]
@@ -139,16 +133,5 @@ mod tests {
         let result = Config::parse_from_env();
         assert!(result.is_err());
         unsafe { env::remove_var("POLL_INTERVAL_SECS") };
-    }
-
-    #[test]
-    fn test_config_invalid_temperature() {
-        unsafe { env::set_var("EXPOSURE_TEMPERATURE", "0.0") };
-        let result = Config::parse_from_env();
-        assert!(result.is_err());
-        unsafe { env::set_var("EXPOSURE_TEMPERATURE", "-1.0") };
-        let result = Config::parse_from_env();
-        assert!(result.is_err());
-        unsafe { env::remove_var("EXPOSURE_TEMPERATURE") };
     }
 }

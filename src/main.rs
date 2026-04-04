@@ -1,27 +1,28 @@
 #![allow(warnings)]
 
 use anyhow::{Context, Result};
+use dialoguer::{theme::ColorfulTheme, Select};
 use lru::LruCache;
 use pmit::config::Config;
 use pmit::data_structures::WalletAddress;
 use pmit::database_handler::{
-    TradeDatabaseHandler, UserHistoryDatabaseHandler, shutdown_database_cleanly,
-    ensure_database_file,
+    shutdown_database_cleanly, TradeDatabaseHandler,
+    UserHistoryDatabaseHandler,
 };
-use pmit::exposure::ExposureEngine;
 use pmit::ingestor::TradeIngestor;
-use pmit::investigator::UserActivityProfiler;
-use pmit::polymarket::{self, Trade};
+use pmit::investigator::{MarketDistributions, UserActivityProfiler};
+use pmit::polymarket::gamma_api::PolymarketGammaApi;
+use pmit::polymarket::{self, Side, Trade};
+use std::collections::{HashMap, HashSet};
 use std::num::NonZeroUsize;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tokio::time::{Duration, sleep};
+use tokio::time::{sleep, Duration};
 
 use tracing_subscriber::EnvFilter;
 
-// we return a Result from main so we can use the `?` operator for easier error handling
 #[tokio::main]
 async fn main() -> Result<()> {
-    // set up the tracing_subscriber
+    /// we start formatting the tracing subscriber
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::builder()
@@ -29,152 +30,197 @@ async fn main() -> Result<()> {
                 .from_env_lossy(),
         )
         .init();
-    // 1. We load the configuration
+    
+    // we load the env files into a config struct.
     let config = Config::load()?;
-    // 2. Initialize all database handlers and schemas before starting the polling loop.
+    // we initialize the database handlers
     let trades_db = TradeDatabaseHandler::new(config.trades_db_path.clone()).await?;
-    // This will create the database file if it doesn't exist, and set up the necessary tables.
     trades_db.init_schema().await?;
-    // same here for the user history database, which we use to store snapshots of user activity
-    // profiles when we fetch them after large trades
     let user_history_db =
         UserHistoryDatabaseHandler::new(config.user_history_db_path.clone()).await?;
     user_history_db.init_schema().await?;
 
-    // Training data is managed by Python workflows; we only ensure the DB file exists.
-    ensure_database_file(&config.training_db_path).await?;
-
-    tracing::info!(
-        "Loaded config! Polling Global Trades API every {} seconds (limit={})",
-        config.poll_interval_secs,
-        config.global_trades_limit
-    );
+    tracing::info!("Loaded config!");
     tracing::info!("Trades DB initialized at {}", config.trades_db_path);
-    tracing::info!(
-        "User history DB initialized at {}",
-        config.user_history_db_path
-    );
-    tracing::info!("Training DB initialized at {}", config.training_db_path);
-    tracing::info!(
-        "Exposure routing threshold set to {:.2}",
-        config.exposure_threshold
-    );
-    tracing::info!(
-        "Exposure scorer temperature set to {:.2}",
-        config.exposure_temperature
-    );
-    tracing::info!(
-        "Staleness detector: warn_lag={}s, consecutive_polls={}",
-        config.stale_feed_warn_secs,
-        config.stale_feed_consecutive_polls
-    );
-    // 3. Set up our LRU (Least Recently Used) Caches
-    // This cache limits memory usage by only remembering the 1,000 most recently queried addresses
-    // the value here is () because only membership in the cache matters, not the value itself
+
+    // initialize caches.
     let mut recent_users: LruCache<WalletAddress, ()> = LruCache::new(
         NonZeroUsize::new(1000).context("Invalid nonzero size for recent users LRU cache")?,
     );
-
-    // We also need a cache to remember which trades we've already processed,
-    // so our 10-second polling loop doesn't double-count the same trade.
     let mut processed_trades: LruCache<String, ()> = LruCache::new(
         NonZeroUsize::new(5000).context("Invalid nonzero size for processed trades LRU cache")?,
     );
 
-    // 4. Create a shared HTTP Client for the application
+    // initialize the reqwest client and active struct
     let http_client = reqwest::Client::new();
-    // we initialize the trade ingestor, which is gonna eat up all trades returned by the API and
-    // normalize them into our internal Trade struct, while also persisting the raw JSON and
-    // normalized data to our trades database
     let trade_ingestor = TradeIngestor::new();
-    // we also asynchronously initialize the exposure engine, which will spawn a Python worker
-    // process running the sentence-BERT model for scoring trade exposure, and set up the
-    // communication channels for sending trade data and receiving exposure scores.
-    let mut exposure_engine = ExposureEngine::new(config.exposure_temperature).await?;
-    // finally we initialize the user activity profiler, which handles routed trades and
-    // fetches/persists user activity snapshots for high-value maker profiles.
     let user_activity_profiler = UserActivityProfiler::new();
 
-    // 5. Initialize the Processing Channel
-    // We use a bounded channel of 100 batches to provide backpressure if the scoring/profiling
-    // falls too far behind the polling.
-    let (tx, mut rx) = tokio::sync::mpsc::channel::<Vec<Trade>>(100);
+    // =============== GAMMA API EVENT SELECTION ===============
+    let gamma_api = PolymarketGammaApi::new(http_client.clone(), config.polymarket_gamma_api_url.clone());
+    tracing::info!("Fetching active events from Gamma API...");
+    let events = gamma_api.fetch_active_events(200).await?;
 
+    if events.is_empty() {
+        tracing::warn!("No active events found!");
+        return Ok(());
+    }
+    // we add the list of events for selection
+    let event_titles: Vec<String> = events.iter().map(|e| e.title.clone()).collect();
+
+    // we let the user select a single event they want to monitor
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Select an event to monitor (Enter to confirm)")
+        .items(&event_titles)
+        .default(0)
+        .interact()
+        .context("Failed to read user selection")?;
+
+    let selected_event = &events[selection];
+    tracing::info!("Monitoring event: {}", selected_event.title);
+
+    // A mapping from token ID back to the Condition ID, and Condition ID back to the Question title
+    let mut token_to_condition: HashMap<String, String> = HashMap::new();
+    let mut condition_to_question: HashMap<String, String> = HashMap::new();
+
+    // Map selected event's markets
+    for market in &selected_event.markets {
+        // we get the token ids for the given market
+        let tokens = market.parsed_clob_token_ids();
+        for token_id in &tokens {
+            // we map the token id to the condition id
+            token_to_condition.insert(token_id.clone(), market.condition_id.clone());
+        }
+        condition_to_question.insert(market.condition_id.clone(), market.question.clone());
+        tracing::info!("Watching Market: {} with {} tokens", market.question, tokens.len());
+    }
+
+    // =============== PRE-WATCHDOG PROFILING ===============
+    tracing::info!("Initializing distribution profiles from recent global trades...");
+    let mut market_distributions = MarketDistributions::new();
+    // Unique condition IDs for distribution creation
+    let unique_conditions: HashSet<String> = token_to_condition.values().cloned().collect();
+    for condition_id in &unique_conditions {
+        market_distributions.setup_market(condition_id.clone(), config.ewma_alpha);
+    }
+
+    // Fetch a single large batch for ONLY our selected markets to prime the distributions
+    let condition_ids: Vec<String> = unique_conditions.into_iter().collect();
+    // condition ids for the background task
+    let condition_ids_for_bg = condition_ids.clone();
+
+    match polymarket::fetch_markets_trades_raw_json(&http_client, &config.polymarket_data_api_url, &condition_ids, 1000).await {
+        Ok(raw_payload) => {
+            if let Ok(ingested_batch) = trade_ingestor.ingest_raw_value(raw_payload, &trades_db).await {
+                for trade in ingested_batch.into_trades() {
+                    // Check if the trade's token ID corresponds to any monitored condition id
+                    if let Some(condition_id) = token_to_condition.get(trade.asset.as_str()) {
+                        market_distributions.insert_historical_trade(condition_id, &trade);
+                    }
+                }
+            }
+        }
+        Err(e) => tracing::warn!("Failed to fetch initial history: {:?}", e),
+    }
+
+    // Print starting distribution data for user visibility
+    println!("\n{:<60} | {:<12} | {:<12}", "Market Question", "Avg Value", "Std Dev");
+    println!("{}", "=".repeat(90));
+    for (cid, dist) in &market_distributions.distributions {
+        let question = condition_to_question.get(cid).map(|s| s.as_str()).unwrap_or("Unknown");
+        let avg = dist.ewma_val_mean.unwrap_or(0.0);
+        let std = dist.ewma_val_variance.sqrt();
+        
+        let display_q = if question.len() > 57 { 
+            format!("{}...", &question[..57]) 
+        } else { 
+            question.to_string() 
+        };
+
+        println!("{:<60} | ${:<11.2} | ${:<11.2}", display_q, avg, std);
+    }
+    println!("");
+
+    tracing::info!("Distribution initialization complete.");
+
+    // =============== PROCESSING PIPELINE CACHE & CHANNELS ===============
+    // we initialize the mpsc channel in which we send batches of trades
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<Vec<Trade>>(100);
+    // we initialize the interval for polling the data api
     let mut poll_interval = tokio::time::interval(Duration::from_secs(config.poll_interval_secs));
 
-    // 6. Spawn the Background Processing Task
-    // This task owns the heavy-duty components: the ExposureEngine (ML), the UserActivityProfiler,
-    // and the LRU caches for deduplication and recent users.
+    // we clone the config, the http client and the user history db to move them into the async task
     let config_clone = config.clone();
     let http_client_clone = http_client.clone();
     let user_history_db_clone = user_history_db.clone();
+    let questions_clone = condition_to_question.clone();
 
+    // this is the processing handle that's gonna profile the trades and do the investigation.
     let processing_handle = tokio::spawn(async move {
-        let mut exposure_engine = exposure_engine;
+        // we move the variables into the async task.
+        // since by default variables used in this block
+        // are moved as immutable we need to specify mutability.
         let mut processed_trades = processed_trades;
         let mut recent_users = recent_users;
         let mut stale_streak: u32 = 0;
+        let mut dists = market_distributions; // Move distributions into the async task
+        let token_map = token_to_condition; // Move token mapping into async task
+        let condition_to_question = questions_clone; // Move question lookup into async task
+        let condition_ids = condition_ids_for_bg; // Move cloned condition IDs into async task
 
-        tracing::info!("Background processing task started.");
+        tracing::info!("Background processing task started with {} monitored markets.", condition_ids.len());
 
-        // we wait for the first batch of trades to arrive
+        // this block runs whenever we get a batch of trades down the channel.
         while let Some(trades) = rx.recv().await {
-            // First we need to check if the feed is stale.
-            // We do this in the processing task because it's part of the analysis pipeline.
+            // in case we get a stale feed
             stale_streak = update_stale_feed_streak(
                 &trades,
                 stale_streak,
                 config_clone.stale_feed_warn_secs,
                 config_clone.stale_feed_consecutive_polls,
             );
-
-            // Deduplicate: only process trades we haven't seen in the LRU cache yet.
+            // we extract the unseen trades
             let new_trades = extract_unseen_trades(trades, &mut processed_trades);
+            // if we've already seen everything that's in there there's not much else to do.
             if new_trades.is_empty() {
                 continue;
             }
 
-            // Feed the trades to the Exposure engine (ML Scoring)
-            let scored_trades = match exposure_engine.score_batch(new_trades).await {
-                Ok(scored) => scored,
-                Err(e) => {
-                    tracing::error!("Exposure scoring failed for this batch: {:?}", e);
-                    continue;
-                }
-            };
-
-            // Exposure -> Routing (temporary routing policy)
-            let exposure_threshold = config_clone.exposure_threshold;
-            let (relevant_trades, deferred_trades) =
-                pmit::exposure::split_by_threshold(scored_trades, exposure_threshold);
-
-            tracing::info!(
-                "Exposure routing: relevant={}, deferred={} (threshold={:.2})",
-                relevant_trades.len(),
-                deferred_trades.len(),
-                exposure_threshold
-            );
+            tracing::info!(">>> Processed batch! {} unseen global trades extracted.", new_trades.len());
 
             // Routing -> UserActivityProfiler (History Fetching)
             user_activity_profiler.profile_batch(
-                relevant_trades,
+                new_trades,
+                &token_map,
+                &mut dists,
                 &mut recent_users,
                 &http_client_clone,
                 &user_history_db_clone,
                 &config_clone,
             );
+
+            // Print updated distribution stats for visibility per batch
+            println!("\n[UPDATED MARKET STATISTICS]");
+            println!("{:<60} | {:<12} | {:<12}", "Market Question", "Avg Value", "Std Dev");
+            println!("{}", "=".repeat(90));
+            for (cid, dist) in &dists.distributions {
+                let question = condition_to_question.get(cid).map(|s| s.as_str()).unwrap_or("Unknown");
+                let avg = dist.ewma_val_mean.unwrap_or(0.0);
+                let std = dist.ewma_val_variance.sqrt();
+                let display_q = if question.len() > 57 { format!("{}...", &question[..57]) } else { question.to_string() };
+                println!("{:<60} | ${:<11.2} | ${:<11.2}", display_q, avg, std);
+            }
+            println!("");
         }
 
         tracing::info!("Background processing task shutting down.");
     });
 
-    // 7. Background Polling Loop
     tracing::info!(
         "Starting global trade monitor... Polling every {}s",
         config.poll_interval_secs
     );
 
-    // We start the polling loop, which will run indefinitely until the program is stopped
     loop {
         tokio::select! {
             _ = tokio::signal::ctrl_c() => {
@@ -184,17 +230,16 @@ async fn main() -> Result<()> {
             _ = poll_interval.tick() => {
                 tracing::debug!("--> Polling Data API for new trades...");
 
-                // Fetch raw global trades payload and normalize via the ingestor.
-                match polymarket::fetch_global_trades_raw_json(
+                // Targeted poll for selected markets
+                match polymarket::fetch_markets_trades_raw_json(
                     &http_client,
                     &config.polymarket_data_api_url,
+                    &condition_ids,
                     config.global_trades_limit,
                 )
                 .await
                 {
                     Ok(raw_payload) => {
-                        // We pass the raw payload to the ingestor, which will parse it, normalize it,
-                        // and also persist the trades to our trades.db.
                         let ingested_batch = match trade_ingestor.ingest_raw_value(raw_payload, &trades_db).await
                         {
                             Ok(batch) => batch,
@@ -206,52 +251,35 @@ async fn main() -> Result<()> {
 
                         let trades = ingested_batch.into_trades();
                         if trades.is_empty() {
-                            tracing::debug!(
-                                "    (No trades returned in the last {} seconds)",
-                                config.poll_interval_secs
-                            );
                             continue;
                         }
-
-                        // Offload the heavy processing to the background task.
+                        // we send the trades over the channel
                         if let Err(e) = tx.try_send(trades) {
                             tracing::warn!("Processing channel full or closed! Batch dropped: {:?}", e);
                         }
                     }
                     Err(e) => {
-                        tracing::error!("Error fetching global trades: {:?}", e);
+                        tracing::error!("Error fetching targeted market trades: {:?}", e);
                     }
                 }
             }
         }
     }
 
-    // Graceful Shutdown Sequence:
-    // 1. Drop the sender so the receiver task knows no more data is coming.
     drop(tx);
-
-    // 2. Wait for the processing task to finish its final batch.
     let _ = processing_handle.await;
 
-    // Before shutting down, we want to switch the database to DELETE mode,
-    // which flushes all WAL data and removes the temporary WAL files.
     if let Err(e) = trades_db.shutdown_cleanly().await {
         tracing::error!("Failed to clean shutdown trades DB: {:?}", e);
     }
-
     if let Err(e) = user_history_db.shutdown_cleanly().await {
         tracing::error!("Failed to clean shutdown user history DB: {:?}", e);
-    }
-
-    if let Err(e) = shutdown_database_cleanly(&config.training_db_path).await {
-        tracing::error!("Failed to clean shutdown training DB: {:?}", e);
     }
 
     tracing::info!("Shutdown checkpoint complete.");
     Ok(())
 }
 
-// helper functions to keep main() cleaner
 fn update_stale_feed_streak(
     trades: &[Trade],
     current_streak: u32,
@@ -278,7 +306,7 @@ fn update_stale_feed_streak(
         );
 
         if next_streak >= stale_feed_consecutive_polls {
-            tracing::error!(
+            tracing::warn!(
                 "[STALE FEED] sustained staleness detected. This often indicates CDN/API cache windows."
             );
         }

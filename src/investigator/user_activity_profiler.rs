@@ -1,10 +1,11 @@
 use crate::config::Config;
 use crate::data_structures::WalletAddress;
 use crate::database_handler::UserHistoryDatabaseHandler;
-use crate::exposure::ScoredTrade;
 use crate::polymarket;
 use crate::polymarket::Trade;
+use crate::investigator::MarketDistributions;
 use lru::LruCache;
+use std::collections::HashMap;
 
 /// Struct for profiling user activity related to routed trades. This profiler focuses on fetching
 /// and storing snapshots of user activity for makers of high-value routed trades.
@@ -18,27 +19,30 @@ impl UserActivityProfiler {
     /// Profile all routed trades and fetch maker activity snapshots when needed.
     pub fn profile_batch(
         &self,
-        relevant_trades: Vec<ScoredTrade>,
+        trades: Vec<Trade>,
+        token_map: &HashMap<String, String>,
+        market_distributions: &mut MarketDistributions,
         recent_users: &mut LruCache<WalletAddress, ()>,
         client: &reqwest::Client,
         user_history_db: &UserHistoryDatabaseHandler,
         config: &Config,
     ) {
-        // iterate over all relevant trades
-        for scored_trade in relevant_trades {
-            // get the exposure score
-            let exposure_score = scored_trade.exposure_score;
-            // get trade details
-            let trade = scored_trade.trade;
-            // we profile the trade.
-            self.profile_trade(
-                recent_users,
-                client,
-                user_history_db,
-                config,
-                exposure_score,
-                trade,
-            );
+        // iterate over all trades
+        for trade in trades {
+            // check if the trade's token ID corresponds to any monitored condition
+            if let Some(condition_id) = token_map.get(trade.asset.as_str()) {
+                let p_value = market_distributions.score_trade(condition_id, &trade).unwrap_or(1.0);
+                
+                // we profile the trade.
+                self.profile_trade(
+                    recent_users,
+                    client,
+                    user_history_db,
+                    config,
+                    trade,
+                    p_value,
+                );
+            }
         }
     }
 
@@ -50,8 +54,8 @@ impl UserActivityProfiler {
         client: &reqwest::Client,
         user_history_db: &UserHistoryDatabaseHandler,
         config: &Config,
-        exposure_score: f64,
         trade: Trade,
+        p_value: f64,
     ) {
         let total_value = trade.size * trade.price;
         let bet_title = trade.title.as_deref().unwrap_or("Unknown Market");
@@ -62,28 +66,27 @@ impl UserActivityProfiler {
             ======================================= 🚨 TRADE 🚨 =======================================\n\
             Market:   {}\n\
             Outcome:  {}\n\
-            Exposure: {:.3}\n\
             Value:    ${:.2} ({:.2} shares @ ${:.2})\n\
             Profit:   ${:.2}\n\
             ===========================================================================================",
             bet_title,
             bet_outcome,
-            exposure_score,
             total_value,
             trade.size,
             trade.price,
             total_profit
         );
 
-        // Only profile users if their trade value is >= our threshold.
-        if total_value >= config.large_trade_threshold {
+        // Only profile users if the probability of the trade is low enough (anomaly).
+        if p_value < config.anomaly_probability_threshold {
             // If we haven't checked this user recently, fetch their history in background.
             if !recent_users.contains(&trade.maker_address) {
                 tracing::info!(
                     "\n\
                     >> 📊 PROFILER ALERT!\n\
-                    >> High-value routed trade by: {}\n\
+                    >> Anomalously large trade (p={:.4}) by: {}\n\
                     >> Fetching activity profile...",
+                    p_value,
                     trade.maker_address
                 );
 
