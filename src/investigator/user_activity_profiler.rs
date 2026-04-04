@@ -101,6 +101,7 @@ impl UserActivityProfiler {
                 let user_history_db_clone = user_history_db.clone();
                 let api_url = config.polymarket_data_api_url.clone();
 
+                // we fetch the user's activity on polymarket in the background
                 tokio::spawn(async move {
                     match polymarket::fetch_user_activity(
                         &client_clone,
