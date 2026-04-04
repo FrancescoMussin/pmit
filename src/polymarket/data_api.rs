@@ -57,7 +57,7 @@ impl PolymarketDataApi {
 
     /// Fetch a specific user's betting history from the Polymarket Data API.
     pub async fn fetch_user_activity(&self, user_address: &str) -> Result<Vec<Value>> {
-        let url = format!("{}/activity?user={}", self.base_url, user_address);
+        let url = format!("{}/activity?user={}&type=trade", self.base_url, user_address);
 
         let res = self
             .client
