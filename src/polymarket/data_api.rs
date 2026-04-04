@@ -141,6 +141,30 @@ impl PolymarketDataApi {
         Ok(payload)
     }
 
+    /// Fetch trades for an entire event (by event ID) as raw JSON from the Polymarket Data API.
+    pub async fn fetch_event_trades_raw_json(&self, event_id: &str, limit: usize) -> Result<Value> {
+        let url = format!("{}/trades?eventId={}&limit={}&side=buy", self.base_url, event_id, limit);
+        let res = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to send GET request for event trades raw JSON")?
+            .error_for_status()
+            .context("Polymarket API returned an error for event trades raw JSON")?;
+
+        let payload = res
+            .json::<Value>()
+            .await
+            .context("Failed to parse JSON response for event trades raw JSON")?;
+
+        if !payload.is_array() {
+            anyhow::bail!("Expected event trades payload to be a JSON array");
+        }
+
+        Ok(payload)
+    }
+
     fn global_trades_url(&self, limit: usize) -> String {
         let ts = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -222,4 +246,15 @@ pub async fn fetch_markets_trades_raw_json(
 ) -> Result<Value> {
     let api = PolymarketDataApi::new(client.clone(), data_api_url.to_string());
     api.fetch_markets_trades_raw_json(condition_ids, limit).await
+}
+
+/// Fetch raw trades JSON for an entire event from the Polymarket Data API.
+pub async fn fetch_event_trades_raw_json(
+    client: &reqwest::Client,
+    data_api_url: &str,
+    event_id: &str,
+    limit: usize,
+) -> Result<Value> {
+    let api = PolymarketDataApi::new(client.clone(), data_api_url.to_string());
+    api.fetch_event_trades_raw_json(event_id, limit).await
 }

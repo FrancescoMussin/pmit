@@ -104,12 +104,11 @@ async fn main() -> Result<()> {
         market_distributions.setup_market(condition_id.clone(), config.ewma_alpha);
     }
 
-    // Fetch a single large batch for ONLY our selected markets to prime the distributions
-    let condition_ids: Vec<String> = unique_conditions.into_iter().collect();
-    // condition ids for the background task
-    let condition_ids_for_bg = condition_ids.clone();
+    // Capture the event ID for fetching all trades in this event
+    let event_id = selected_event.id.clone();
+    let event_id_for_bg = event_id.clone();
 
-    match polymarket::fetch_markets_trades_raw_json(&http_client, &config.polymarket_data_api_url, &condition_ids, 1000).await {
+    match polymarket::fetch_event_trades_raw_json(&http_client, &config.polymarket_data_api_url, &event_id, 1000).await {
         Ok(raw_payload) => {
             if let Ok(ingested_batch) = trade_ingestor.ingest_raw_value(raw_payload, &trades_db).await {
                 for trade in ingested_batch.into_trades() {
@@ -166,9 +165,9 @@ async fn main() -> Result<()> {
         let mut dists = market_distributions; // Move distributions into the async task
         let token_map = token_to_condition; // Move token mapping into async task
         let condition_to_question = questions_clone; // Move question lookup into async task
-        let condition_ids = condition_ids_for_bg; // Move cloned condition IDs into async task
+        let event_id = event_id_for_bg; // Move cloned event ID into async task
 
-        tracing::info!("Background processing task started with {} monitored markets.", condition_ids.len());
+        tracing::info!("Background processing task started for event: {}.", event_id);
 
         // this block runs whenever we get a batch of trades down the channel.
         while let Some(trades) = rx.recv().await {
@@ -230,11 +229,11 @@ async fn main() -> Result<()> {
             _ = poll_interval.tick() => {
                 tracing::debug!("--> Polling Data API for new trades...");
 
-                // Targeted poll for selected markets
-                match polymarket::fetch_markets_trades_raw_json(
+                // Targeted poll for selected event
+                match polymarket::fetch_event_trades_raw_json(
                     &http_client,
                     &config.polymarket_data_api_url,
-                    &condition_ids,
+                    &event_id,
                     config.global_trades_limit,
                 )
                 .await
