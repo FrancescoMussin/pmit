@@ -60,7 +60,7 @@ pub async fn fetch_user_closed_positions(
 }
 
 /// Placeholder for user custom win-rate logic.
-pub fn calculate_win_rate(_positions: &[ClosedPosition]) -> f64 {
+pub fn calculate_win_rate(_positions: &[ClosedPosition], past_trades: &[PastTrade]) -> f64 {
     // User will implement this logic based on curPrice and endDate
     0.0
 }
@@ -81,7 +81,7 @@ pub fn spawn_investigation(
             fetch_user_closed_positions(client.clone(), api_url.clone(), address.clone())
         )?;
         
-        let win_rate = calculate_win_rate(&closed_positions);
+        let win_rate = calculate_win_rate(&closed_positions, &past_trades);
         
         Ok(UserActivityReport {
             address,

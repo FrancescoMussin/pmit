@@ -57,7 +57,7 @@ impl PolymarketDataApi {
 
     pub async fn fetch_user_activity(&self, user_address: &str) -> Result<Vec<Value>> {
         // this shouldn't have a side=BUY
-        let url = format!("{}/activity?user={}&type=trade", self.base_url, user_address);
+        let url = format!("{}/activity?sortBy=timestamp&sortDirection=desc&user={}&type=trade", self.base_url, user_address);
 
         let res = self
             .client
@@ -81,7 +81,7 @@ impl PolymarketDataApi {
         &self,
         user_address: &str,
     ) -> Result<Vec<ClosedPosition>> {
-        let url = format!("{}/closed-positions?user={}", self.base_url, user_address);
+        let url = format!("{}/closed-positions?sortBy=timestamp&sortDirection=desc&user={}", self.base_url, user_address);
 
         let res = self
             .client
