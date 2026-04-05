@@ -1,6 +1,6 @@
-use crate::polymarket;
-use crate::polymarket::{Trade, PastTrade, ClosedPosition};
 use crate::data_structures::WalletAddress;
+use crate::polymarket;
+use crate::polymarket::{ClosedPosition, PastTrade, Trade};
 use anyhow::Result;
 use tokio::task::JoinHandle;
 
@@ -44,9 +44,10 @@ pub async fn fetch_user_history(
     address: WalletAddress,
 ) -> Result<Vec<PastTrade>> {
     let raw_activity = polymarket::fetch_user_activity(&client, &api_url, address.as_str()).await?;
-    
+
     // We convert the Vec<Value> into Vec<PastTrade> using serde_json::from_value
-    let past_trades: Vec<PastTrade> = serde_json::from_value(serde_json::Value::Array(raw_activity))?;
+    let past_trades: Vec<PastTrade> =
+        serde_json::from_value(serde_json::Value::Array(raw_activity))?;
     Ok(past_trades)
 }
 
@@ -60,8 +61,11 @@ pub async fn fetch_user_closed_positions(
 }
 
 /// Placeholder for user custom win-rate logic.
-pub fn calculate_win_rate(_positions: &[ClosedPosition], past_trades: &[PastTrade]) -> f64 {
+pub fn calculate_win_rate(_positions: &[ClosedPosition], _past_trades: &[PastTrade]) -> f64 {
     // User will implement this logic based on curPrice and endDate
+    // the best way to do this is by having past_trades be a hashmap from some id to the trade
+    // details, and then for each closed position, we can look up the corresponding trade
+    // details to determine if the last trade on that market for this user was a buy or a sell.
     0.0
 }
 
@@ -74,15 +78,15 @@ pub fn spawn_investigation(
     tokio::spawn(async move {
         let address = req.address().clone();
         let p_value = req.p_value();
-        
+
         // Parallel Data Fetching
         let (past_trades, closed_positions) = tokio::try_join!(
             fetch_user_history(client.clone(), api_url.clone(), address.clone()),
             fetch_user_closed_positions(client.clone(), api_url.clone(), address.clone())
         )?;
-        
+
         let win_rate = calculate_win_rate(&closed_positions, &past_trades);
-        
+
         Ok(UserActivityReport {
             address,
             past_trades,
