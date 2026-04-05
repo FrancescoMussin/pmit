@@ -78,13 +78,14 @@ impl SingleMarketDistribution {
     pub fn score_trade(&mut self, trade: &Trade) -> f64 {
         let total_value = trade.size * trade.price;
         let p_value = if let Some(mean) = self.ewma_val_mean {
-            let std_dev = self.ewma_val_variance.sqrt().max(1e-6); // Prevent zero division
-            let k = (total_value - mean).abs() / std_dev;
+            let diff_sq = (total_value - mean).powi(2);
             
-            // Chebyshev's inequality provides a bound for any distribution.
-            // For k > 1, the probability is at most 1/k^2.
-            if k > 1.0 {
-                (1.0 / (k * k)).min(1.0)
+            // Chebyshev's inequality provides a bound: P(|X - μ| >= kσ) <= 1/k^2
+            // Since k = |total_value - mean| / σ, then k^2 = (total_value - mean)^2 / σ^2
+            // So 1/k^2 = variance / diff_sq.
+            // This inequality is only useful for k > 1, which means diff_sq > variance.
+            if diff_sq > self.ewma_val_variance && diff_sq > 0.0 {
+                (self.ewma_val_variance / diff_sq).min(1.0)
             } else {
                 1.0 // Inequality is not useful for k <= 1
             }

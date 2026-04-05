@@ -10,7 +10,7 @@ use pmit::database_handler::{
     UserHistoryDatabaseHandler,
 };
 use pmit::ingestor::TradeIngestor;
-use pmit::investigator::{MarketDistributions, UserActivityProfiler};
+use pmit::investigator::{InvestigationRequest, MarketDistributions, UserActivityProfiler, spawn_investigation};
 use pmit::polymarket::gamma_api::PolymarketGammaApi;
 use pmit::polymarket::{self, Side, Trade};
 use std::collections::{HashMap, HashSet};
@@ -18,6 +18,7 @@ use std::num::NonZeroUsize;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{sleep, Duration};
 
+use futures_util::stream::{StreamExt, FuturesUnordered};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -145,6 +146,9 @@ async fn main() -> Result<()> {
     // =============== PROCESSING PIPELINE CACHE & CHANNELS ===============
     // we initialize the mpsc channel in which we send batches of trades
     let (tx, mut rx) = tokio::sync::mpsc::channel::<Vec<Trade>>(100);
+    // channel for investigation requests
+    let (inv_tx, mut inv_rx) = tokio::sync::mpsc::unbounded_channel::<InvestigationRequest>();
+    
     // we initialize the interval for polling the data api
     let mut poll_interval = tokio::time::interval(Duration::from_secs(config.poll_interval_secs));
 
@@ -154,7 +158,63 @@ async fn main() -> Result<()> {
     let user_history_db_clone = user_history_db.clone();
     let questions_clone = condition_to_question.clone();
 
-    // this is the processing handle that's gonna profile the trades and do the investigation.
+    // Start the Investigator Task (The Orchestrator)
+    let inv_client = http_client.clone();
+    let inv_db = user_history_db.clone();
+    let inv_api_url = config.polymarket_data_api_url.clone();
+    let investigator_handle = tokio::spawn(async move {
+        tracing::info!("Investigator task (Orchestrator) started.");
+        // we initialize the futures unordered so that we don't block the investigator_handle on a single investigation
+        let mut pending_investigations = FuturesUnordered::new();
+
+        loop {
+            tokio::select! {
+                // We listen for new investigation requests from the monitor
+                Some(req) = inv_rx.recv() => {
+                    tracing::info!(">>> [ORCHESTRATOR] Received investigation request for address: {}", req.address());
+                    // We spawn a new investigation and add it to our tracking bucket
+                    pending_investigations.push(spawn_investigation(req, inv_client.clone(), inv_api_url.clone()));
+                }
+                
+                // We listen for any completed investigation from our bucket
+                Some(res) = pending_investigations.next() => {
+                    match res {
+                        Ok(Ok(report)) => {
+                            let address = report.address;
+                            let p_value = report.p_value;
+                            let past_trades = report.past_trades;
+                            
+                            tracing::info!(
+                                ">>> ✅ [ORCHESTRATOR] Investigation complete for {}. p_value: {:.4}. Win Rate: {:.1}% (Sample: {} history).",
+                                address,
+                                p_value,
+                                report.win_rate * 100.0,
+                                past_trades.len()
+                            );
+
+                            // For now, we just persist the results. Later, we'll add statistics and heuristics.
+                            if let Err(e) = inv_db.insert_user_activity_snapshot(address.to_string(), past_trades).await {
+                                tracing::error!("❌ [ORCHESTRATOR] PERSIST ERROR for {}: {:?}", address, e);
+                            }
+                        }
+                        Ok(Err(e)) => {
+                            tracing::error!("❌ [ORCHESTRATOR] INVESTIGATION FAILED: {:?}", e);
+                        }
+                        Err(e) => {
+                            tracing::error!("❌ [ORCHESTRATOR] TASK PANIC or ABORTED: {:?}", e);
+                        }
+                    }
+                }
+                
+                // if both streams are closed, we finish
+                else => break,
+            }
+        }
+        tracing::info!("Investigator task (Orchestrator) shutting down.");
+    });
+
+    // this is the processing handle that's gonna profile the trades pass the proxyWallets down to the investigator
+    let inv_tx_bg = inv_tx.clone();
     let processing_handle = tokio::spawn(async move {
         // we move the variables into the async task.
         // since by default variables used in this block
@@ -166,6 +226,7 @@ async fn main() -> Result<()> {
         let token_map = token_to_condition; // Move token mapping into async task
         let condition_to_question = questions_clone; // Move question lookup into async task
         let event_id = event_id_for_bg; // Move cloned event ID into async task
+        let inv_tx = inv_tx_bg; // Move investigation sender into async task
 
         tracing::info!("Background processing task started for event: {}.", event_id);
 
@@ -193,8 +254,7 @@ async fn main() -> Result<()> {
                 &token_map,
                 &mut dists,
                 &mut recent_users,
-                &http_client_clone,
-                &user_history_db_clone,
+                &inv_tx,
                 &config_clone,
             );
 
@@ -266,7 +326,8 @@ async fn main() -> Result<()> {
     }
 
     drop(tx);
-    let _ = processing_handle.await;
+    drop(inv_tx);
+    let _ = tokio::join!(processing_handle, investigator_handle);
 
     if let Err(e) = trades_db.shutdown_cleanly().await {
         tracing::error!("Failed to clean shutdown trades DB: {:?}", e);

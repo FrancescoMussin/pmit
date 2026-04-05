@@ -1,13 +1,12 @@
 use anyhow::{Context, Result, anyhow};
 use rusqlite::params;
-use serde_json::Value;
 use std::fs;
 use std::path::Path;
 use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio_rusqlite::Connection;
 
-use crate::polymarket::Trade;
+use crate::polymarket::{PastTrade, Trade};
 
 /// SQLite gateway for trades persistence.
 #[derive(Debug, Clone)]
@@ -200,7 +199,7 @@ impl UserHistoryDatabaseHandler {
     pub async fn insert_user_activity_snapshot(
         &self,
         user_address: String,
-        activity: Vec<Value>,
+        activity: Vec<PastTrade>,
     ) -> Result<()> {
         // We use `move` to transfer ownership of the owned `user_address` (String) and
         // `activity` (Vec<Value>) into the closure. This is required because the closure is

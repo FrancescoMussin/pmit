@@ -1,11 +1,11 @@
 use crate::config::Config;
 use crate::data_structures::WalletAddress;
-use crate::database_handler::UserHistoryDatabaseHandler;
-use crate::polymarket;
 use crate::polymarket::Trade;
 use crate::investigator::MarketDistributions;
+use crate::investigator::InvestigationRequest;
 use lru::LruCache;
 use std::collections::HashMap;
+use tokio::sync::mpsc::UnboundedSender;
 
 /// Struct for profiling user activity related to routed trades. This profiler focuses on fetching
 /// and storing snapshots of user activity for makers of high-value routed trades.
@@ -23,8 +23,7 @@ impl UserActivityProfiler {
         token_map: &HashMap<String, String>,
         market_distributions: &mut MarketDistributions,
         recent_users: &mut LruCache<WalletAddress, ()>,
-        client: &reqwest::Client,
-        user_history_db: &UserHistoryDatabaseHandler,
+        tx: &UnboundedSender<InvestigationRequest>,
         config: &Config,
     ) {
         // iterate over all trades
@@ -36,8 +35,7 @@ impl UserActivityProfiler {
                 // we profile the trade.
                 self.profile_trade(
                     recent_users,
-                    client,
-                    user_history_db,
+                    tx,
                     config,
                     trade,
                     p_value,
@@ -51,8 +49,7 @@ impl UserActivityProfiler {
     fn profile_trade(
         &self,
         recent_users: &mut LruCache<WalletAddress, ()>,
-        client: &reqwest::Client,
-        user_history_db: &UserHistoryDatabaseHandler,
+        tx: &UnboundedSender<InvestigationRequest>,
         config: &Config,
         trade: Trade,
         p_value: f64,
@@ -85,79 +82,20 @@ impl UserActivityProfiler {
                     "\n\
                     >> 📊 PROFILER ALERT!\n\
                     >> Anomalously large trade (p={:.4}) by: {}\n\
-                    >> Fetching activity profile...",
+                    >> Queuing investigation request...",
                     p_value,
                     trade.maker_address
                 );
 
-                // Mark as seen before spawning, to avoid duplicate fetches in short bursts.
+                // Mark as seen before queuing, to avoid duplicate requests in short bursts.
                 recent_users.put(trade.maker_address.clone(), ());
 
-                // We clone the necessary variables to move into the async task. This includes the
-                // HTTP client, the maker's address, the user history database handler, and the API
-                // URL from the config.
-                let client_clone = client.clone();
-                let address_clone = trade.maker_address.clone();
-                let user_history_db_clone = user_history_db.clone();
-                let api_url = config.polymarket_data_api_url.clone();
+                let request = InvestigationRequest::new(trade, p_value);
 
-                // we fetch the user's activity on polymarket in the background
-                tokio::spawn(async move {
-                    match polymarket::fetch_user_activity(
-                        &client_clone,
-                        &api_url,
-                        address_clone.as_str(),
-                    )
-                    .await
-                    {
-                        // Error handling as always
-                        Ok(activity) => {
-                            // we immediately persist the fetch activity snapshot to the database
-                            // for future reference and potential training data, even if the
-                            // subsequent processing or preview generation fails.
-                            if let Err(e) = user_history_db_clone
-                                .insert_user_activity_snapshot(
-                                    address_clone.to_string(),
-                                    activity.clone(),
-                                )
-                                .await
-                            {
-                                tracing::error!(
-                                    "\n\
-                                    >> ❌ PERSIST ERROR\n\
-                                    >> Address: {}\n\
-                                    >> Error:   {:?}",
-                                    address_clone,
-                                    e
-                                );
-                            }
-
-                            // we generate a preview of the fetched activity for logging purposes.
-                            // We serialize the activity to JSON and take the first 200 characters
-                            // to avoid overwhelming the logs
-                            let json_str = serde_json::to_string(&activity).unwrap_or_default();
-                            let preview: String = json_str.chars().take(200).collect();
-                            tracing::info!(
-                                "\n\
-                                >> ✅ PROFILE FETCHED\n\
-                                >> Address: {}\n\
-                                >> Preview: {}...",
-                                address_clone,
-                                preview
-                            );
-                        }
-                        Err(e) => {
-                            tracing::error!(
-                                "\n\
-                                >> ❌ FETCH ERROR\n\
-                                >> Address: {}\n\
-                                >> Error:   {:?}",
-                                address_clone,
-                                e
-                            );
-                        }
-                    }
-                });
+                // send the request down the channel
+                if let Err(e) = tx.send(request) {
+                    tracing::error!("Failed to queue investigation request: {:?}", e);
+                }
             }
         }
     }

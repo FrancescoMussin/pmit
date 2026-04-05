@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use serde_json::Value;
 
-pub use crate::data_structures::trade::Trade;
+pub use crate::data_structures::trade::{ClosedPosition, Trade};
 
 /// HTTP adapter for Polymarket Data API.
 ///
@@ -55,7 +55,6 @@ impl PolymarketDataApi {
         Ok(trades)
     }
 
-    /// Fetch a specific user's betting history from the Polymarket Data API.
     pub async fn fetch_user_activity(&self, user_address: &str) -> Result<Vec<Value>> {
         // this shouldn't have a side=BUY
         let url = format!("{}/activity?user={}&type=trade", self.base_url, user_address);
@@ -75,6 +74,30 @@ impl PolymarketDataApi {
             .context("Failed to parse JSON response for user activity")?;
 
         Ok(activity)
+    }
+
+    /// Fetch a specific user's closed positions from the Polymarket Data API.
+    pub async fn fetch_user_closed_positions(
+        &self,
+        user_address: &str,
+    ) -> Result<Vec<ClosedPosition>> {
+        let url = format!("{}/closed-positions?user={}", self.base_url, user_address);
+
+        let res = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to send GET request for closed positions")?
+            .error_for_status()
+            .context("Polymarket API returned an error for closed positions")?;
+
+        let positions = res
+            .json::<Vec<ClosedPosition>>()
+            .await
+            .context("Failed to parse JSON response for closed positions")?;
+
+        Ok(positions)
     }
 
     /// Fetch trades for a specific market (condition ID) from the Polymarket Data API.
@@ -195,7 +218,6 @@ pub async fn fetch_global_trades_raw_json(
     api.fetch_global_trades_raw_json(limit).await
 }
 
-/// Fetch a specific user's betting history from the Polymarket Data API
 pub async fn fetch_user_activity(
     client: &reqwest::Client,
     data_api_url: &str,
@@ -203,6 +225,16 @@ pub async fn fetch_user_activity(
 ) -> Result<Vec<Value>> {
     let api = PolymarketDataApi::new(client.clone(), data_api_url.to_string());
     api.fetch_user_activity(user_address).await
+}
+
+/// Fetch a specific user's closed positions from the Polymarket Data API.
+pub async fn fetch_user_closed_positions(
+    client: &reqwest::Client,
+    data_api_url: &str,
+    user_address: &str,
+) -> Result<Vec<ClosedPosition>> {
+    let api = PolymarketDataApi::new(client.clone(), data_api_url.to_string());
+    api.fetch_user_closed_positions(user_address).await
 }
 
 /// Fetch trades for a specific market from the Polymarket Data API

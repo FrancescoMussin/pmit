@@ -62,6 +62,30 @@ impl fmt::Display for ContractId {
     }
 }
 
+/// A market condition ID on Polymarket.
+///
+/// Newtype wrapper for semantic clarity and type safety.
+/// Serializes/deserializes transparently as a string.
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(transparent)]
+pub struct ConditionId(String);
+
+impl ConditionId {
+    pub fn new(id: String) -> Self {
+        Self(id)
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for ConditionId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl fmt::Display for Side {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -86,6 +110,31 @@ pub struct Trade {
     pub timestamp: u64,
     #[serde(alias = "transactionHash")]
     pub transaction_hash: String,
+}
+
+/// A trade from a user's past betting history.
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct PastTrade {
+    #[serde(rename = "conditionId")]
+    pub condition_id: ConditionId,
+    pub size: f64,
+    pub price: f64,
+    pub side: Side,
+    pub title: String,
+    pub asset: ContractId,
+}
+
+/// A user's resolved/closed position on Polymarket.
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ClosedPosition {
+    pub condition_id: ConditionId,
+    pub cur_price: f64,
+    pub end_date: String,
+    pub title: String,
+    pub outcome: String,
+    pub outcome_index: usize,
+    pub realized_pnl: f64,
 }
 
 #[cfg(test)]
