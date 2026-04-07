@@ -135,6 +135,7 @@ pub struct ClosedPosition {
     pub outcome: String,
     pub outcome_index: usize,
     pub realized_pnl: f64,
+    pub asset: ClobTokenId,
 }
 
 #[cfg(test)]

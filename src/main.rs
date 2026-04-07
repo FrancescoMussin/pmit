@@ -166,6 +166,7 @@ async fn main() -> Result<()> {
     let inv_client = http_client.clone();
     let inv_db = user_history_db.clone();
     let inv_api_url = config.polymarket_data_api_url.clone();
+    let inv_gamma_api_url = config.polymarket_gamma_api_url.clone();
     let investigator_handle = tokio::spawn(async move {
         tracing::info!("Investigator task (Orchestrator) started.");
         // we initialize the futures unordered so that we don't block the investigator_handle on a single investigation
@@ -177,7 +178,7 @@ async fn main() -> Result<()> {
                 Some(req) = inv_rx.recv() => {
                     tracing::info!(">>> [ORCHESTRATOR] Received investigation request for address: {}", req.address());
                     // We spawn a new investigation and add it to our tracking bucket
-                    pending_investigations.push(spawn_investigation(req, inv_client.clone(), inv_api_url.clone()));
+                    pending_investigations.push(spawn_investigation(req, inv_client.clone(), inv_api_url.clone(), inv_gamma_api_url.clone()));
                 }
                 
                 // We listen for any completed investigation from our bucket
@@ -190,7 +191,7 @@ async fn main() -> Result<()> {
                             
                             tracing::info!(
                                 ">>> ✅ [ORCHESTRATOR] Investigation complete for {}. p_value: {:.4}. Win Rate: {:.1}% (Sample: {} history).",
-                                address,
+                                report.public_profile.name,
                                 p_value,
                                 report.win_rate * 100.0,
                                 past_trades.len()

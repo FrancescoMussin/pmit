@@ -6,7 +6,8 @@ use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio_rusqlite::Connection;
 
-use crate::polymarket::{PastTrade, Trade};
+use crate::investigator::investigation::PastUserTrades;
+use crate::polymarket::Trade;
 
 /// SQLite gateway for trades persistence.
 #[derive(Debug, Clone)]
@@ -199,7 +200,7 @@ impl UserHistoryDatabaseHandler {
     pub async fn insert_user_activity_snapshot(
         &self,
         user_address: String,
-        activity: Vec<PastTrade>,
+        activity: PastUserTrades,
     ) -> Result<()> {
         // We use `move` to transfer ownership of the owned `user_address` (String) and
         // `activity` (Vec<Value>) into the closure. This is required because the closure is
