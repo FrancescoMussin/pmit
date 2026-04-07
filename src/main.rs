@@ -10,7 +10,10 @@ use pmit::database_handler::{
     UserHistoryDatabaseHandler,
 };
 use pmit::ingestor::TradeIngestor;
-use pmit::investigator::{InvestigationRequest, MarketDistributions, UserActivityProfiler, spawn_investigation};
+use pmit::investigator::{
+    print_investigation_header, print_investigation_row, InvestigationRequest, MarketDistributions,
+    UserActivityProfiler, spawn_investigation,
+};
 use pmit::polymarket::gamma_api::PolymarketGammaApi;
 use pmit::polymarket::{self, Side, Trade};
 use std::collections::{HashMap, HashSet};
@@ -171,6 +174,7 @@ async fn main() -> Result<()> {
         tracing::info!("Investigator task (Orchestrator) started.");
         // we initialize the futures unordered so that we don't block the investigator_handle on a single investigation
         let mut pending_investigations = FuturesUnordered::new();
+        let mut header_printed = false;
 
         loop {
             tokio::select! {
@@ -185,18 +189,17 @@ async fn main() -> Result<()> {
                 Some(res) = pending_investigations.next() => {
                     match res {
                         Ok(Ok(report)) => {
+                            if !header_printed {
+                                print_investigation_header();
+                                header_printed = true;
+                            }
+                            // Row-by-row table output
+                            print_investigation_row(&report);
+
                             let address = report.address;
                             let p_value = report.p_value;
                             let past_trades = report.past_trades;
                             
-                            tracing::info!(
-                                ">>> ✅ [ORCHESTRATOR] Investigation complete for {}. p_value: {:.4}. Win Rate: {:.1}% (Sample: {} history).",
-                                report.public_profile.name,
-                                p_value,
-                                report.win_rate * 100.0,
-                                past_trades.len()
-                            );
-
                             // For now, we just persist the results. Later, we'll add statistics and heuristics.
                             if let Err(e) = inv_db.insert_user_activity_snapshot(address.to_string(), past_trades).await {
                                 tracing::error!("❌ [ORCHESTRATOR] PERSIST ERROR for {}: {:?}", address, e);
