@@ -80,29 +80,28 @@ async fn main() -> Result<()> {
     let selected_event = &events[selection];
     tracing::info!("Monitoring event: {}", selected_event.title);
 
-    // A mapping from token ID back to the Condition ID, and Condition ID back to the Question title
-    let mut token_to_condition: HashMap<String, String> = HashMap::new();
-    let mut condition_to_question: HashMap<String, String> = HashMap::new();
+    // A mapping from token ID to a tuple of (Question, Outcome)
+    let mut monitored_tokens: HashSet<String> = HashSet::new();
+    let mut token_to_outcome_info: HashMap<String, (String, String)> = HashMap::new();
 
     // Map selected event's markets
     for market in &selected_event.markets {
         // we get the token ids for the given market
         let tokens = market.parsed_clob_token_ids();
-        for token_id in &tokens {
-            // we map the token id to the condition id
-            token_to_condition.insert(token_id.clone(), market.condition_id.clone());
+        let outcomes = market.parsed_outcomes();
+        for (i, token_id) in tokens.iter().enumerate() {
+            monitored_tokens.insert(token_id.clone());
+            let outcome_str = outcomes.get(i).cloned().unwrap_or_else(|| format!("Outcome {}", i));
+            token_to_outcome_info.insert(token_id.clone(), (market.question.clone(), outcome_str));
         }
-        condition_to_question.insert(market.condition_id.clone(), market.question.clone());
         tracing::info!("Watching Market: {} with {} tokens", market.question, tokens.len());
     }
 
     // =============== PRE-WATCHDOG PROFILING ===============
     tracing::info!("Initializing distribution profiles from recent global trades...");
     let mut market_distributions = MarketDistributions::new();
-    // Unique condition IDs for distribution creation
-    let unique_conditions: HashSet<String> = token_to_condition.values().cloned().collect();
-    for condition_id in &unique_conditions {
-        market_distributions.setup_market(condition_id.clone(), config.ewma_alpha);
+    for token_id in &monitored_tokens {
+        market_distributions.setup_token(token_id.clone(), config.ewma_alpha);
     }
 
     // Capture the event ID for fetching all trades in this event
@@ -113,9 +112,8 @@ async fn main() -> Result<()> {
         Ok(raw_payload) => {
             if let Ok(ingested_batch) = trade_ingestor.ingest_raw_value(raw_payload, &trades_db).await {
                 for trade in ingested_batch.into_trades() {
-                    // Check if the trade's token ID corresponds to any monitored condition id
-                    if let Some(condition_id) = token_to_condition.get(trade.asset.as_str()) {
-                        market_distributions.insert_historical_trade(condition_id, &trade);
+                    if monitored_tokens.contains(trade.asset.as_str()) {
+                        market_distributions.insert_historical_trade(trade.asset.as_str(), &trade);
                     }
                 }
             }
@@ -124,10 +122,10 @@ async fn main() -> Result<()> {
     }
 
     // Print starting distribution data for user visibility
-    println!("\n{:<60} | {:<12} | {:<12}", "Market Question", "Avg Value", "Std Dev");
-    println!("{}", "=".repeat(90));
-    for (cid, dist) in &market_distributions.distributions {
-        let question = condition_to_question.get(cid).map(|s| s.as_str()).unwrap_or("Unknown");
+    println!("\n{:<60} | {:<15} | {:<12} | {:<12}", "Market Question", "Outcome", "Avg Value", "Std Dev");
+    println!("{}", "=".repeat(105));
+    for (token_id, dist) in &market_distributions.distributions {
+        let (question, outcome) = token_to_outcome_info.get(token_id).cloned().unwrap_or_else(|| ("Unknown".to_string(), "Unknown".to_string()));
         let avg = dist.ewma_val_mean.unwrap_or(0.0);
         let std = dist.ewma_val_variance.sqrt();
         
@@ -136,8 +134,13 @@ async fn main() -> Result<()> {
         } else { 
             question.to_string() 
         };
+        let display_o = if outcome.len() > 12 {
+            format!("{}...", &outcome[..12])
+        } else {
+            outcome.to_string()
+        };
 
-        println!("{:<60} | ${:<11.2} | ${:<11.2}", display_q, avg, std);
+        println!("{:<60} | {:<15} | ${:<11.2} | ${:<11.2}", display_q, display_o, avg, std);
     }
     println!("");
 
@@ -156,7 +159,8 @@ async fn main() -> Result<()> {
     let config_clone = config.clone();
     let http_client_clone = http_client.clone();
     let user_history_db_clone = user_history_db.clone();
-    let questions_clone = condition_to_question.clone();
+    let monitored_tokens_clone = monitored_tokens.clone();
+    let token_to_outcome_info_clone = token_to_outcome_info.clone();
 
     // Start the Investigator Task (The Orchestrator)
     let inv_client = http_client.clone();
@@ -223,8 +227,8 @@ async fn main() -> Result<()> {
         let mut recent_users = recent_users;
         let mut stale_streak: u32 = 0;
         let mut dists = market_distributions; // Move distributions into the async task
-        let token_map = token_to_condition; // Move token mapping into async task
-        let condition_to_question = questions_clone; // Move question lookup into async task
+        let monitored_tokens = monitored_tokens_clone; // Move monitored tokens into async task
+        let token_to_outcome_info = token_to_outcome_info_clone; // Move info lookup into async task
         let event_id = event_id_for_bg; // Move cloned event ID into async task
         let inv_tx = inv_tx_bg; // Move investigation sender into async task
 
@@ -251,7 +255,7 @@ async fn main() -> Result<()> {
             // Routing -> UserActivityProfiler (History Fetching)
             user_activity_profiler.profile_batch(
                 new_trades,
-                &token_map,
+                &monitored_tokens,
                 &mut dists,
                 &mut recent_users,
                 &inv_tx,
@@ -260,14 +264,15 @@ async fn main() -> Result<()> {
 
             // Print updated distribution stats for visibility per batch
             println!("\n[UPDATED MARKET STATISTICS]");
-            println!("{:<60} | {:<12} | {:<12}", "Market Question", "Avg Value", "Std Dev");
-            println!("{}", "=".repeat(90));
-            for (cid, dist) in &dists.distributions {
-                let question = condition_to_question.get(cid).map(|s| s.as_str()).unwrap_or("Unknown");
+            println!("{:<60} | {:<15} | {:<12} | {:<12}", "Market Question", "Outcome", "Avg Value", "Std Dev");
+            println!("{}", "=".repeat(105));
+            for (token_id, dist) in &dists.distributions {
+                let (question, outcome) = token_to_outcome_info.get(token_id).cloned().unwrap_or_else(|| ("Unknown".to_string(), "Unknown".to_string()));
                 let avg = dist.ewma_val_mean.unwrap_or(0.0);
                 let std = dist.ewma_val_variance.sqrt();
                 let display_q = if question.len() > 57 { format!("{}...", &question[..57]) } else { question.to_string() };
-                println!("{:<60} | ${:<11.2} | ${:<11.2}", display_q, avg, std);
+                let display_o = if outcome.len() > 12 { format!("{}...", &outcome[..12]) } else { outcome.to_string() };
+                println!("{:<60} | {:<15} | ${:<11.2} | ${:<11.2}", display_q, display_o, avg, std);
             }
             println!("");
         }

@@ -38,15 +38,15 @@ impl fmt::Display for WalletAddress {
     }
 }
 
-/// A smart contract/token ID on the blockchain.
+/// A smart contract/token ID on the blockchain, generally representing a CLOB token.
 ///
 /// Newtype wrapper for semantic clarity and type safety.
 /// Serializes/deserializes transparently as a string.
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(transparent)]
-pub struct ContractId(String);
+pub struct ClobTokenId(String);
 
-impl ContractId {
+impl ClobTokenId {
     pub fn new(id: String) -> Self {
         Self(id)
     }
@@ -56,7 +56,7 @@ impl ContractId {
     }
 }
 
-impl fmt::Display for ContractId {
+impl fmt::Display for ClobTokenId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
@@ -102,7 +102,7 @@ pub struct Trade {
     #[serde(alias = "proxyWallet")]
     pub maker_address: WalletAddress,
     pub side: Side,
-    pub asset: ContractId,
+    pub asset: ClobTokenId,
     pub title: Option<String>,
     pub outcome: Option<String>,
     pub size: f64,
@@ -121,7 +121,7 @@ pub struct PastTrade {
     pub price: f64,
     pub side: Side,
     pub title: String,
-    pub asset: ContractId,
+    pub asset: ClobTokenId,
 }
 
 /// A user's resolved/closed position on Polymarket.
@@ -172,33 +172,33 @@ mod tests {
         assert_eq!(wallet.to_string(), "0x123abc");
     }
 
-    // ============ ContractId Tests ============
+    // ============ ClobTokenId Tests ============
 
     #[test]
     fn test_contract_id_deserialization() {
         let json = r#""USDC""#;
-        let contract: ContractId = serde_json::from_str(json).expect("Failed to deserialize");
+        let contract: ClobTokenId = serde_json::from_str(json).expect("Failed to deserialize");
         assert_eq!(contract.as_str(), "USDC");
     }
 
     #[test]
     fn test_contract_id_serialization() {
-        let contract = ContractId::new("ETH".to_string());
+        let contract = ClobTokenId::new("ETH".to_string());
         let json = serde_json::to_string(&contract).expect("Failed to serialize");
         assert_eq!(json, r#""ETH""#);
     }
 
     #[test]
     fn test_contract_id_round_trip() {
-        let original = ContractId::new("0xdac17f958d2ee523a2206206994597c13d831ec7".to_string());
+        let original = ClobTokenId::new("0xdac17f958d2ee523a2206206994597c13d831ec7".to_string());
         let json = serde_json::to_string(&original).expect("Failed to serialize");
-        let deserialized: ContractId = serde_json::from_str(&json).expect("Failed to deserialize");
+        let deserialized: ClobTokenId = serde_json::from_str(&json).expect("Failed to deserialize");
         assert_eq!(original, deserialized);
     }
 
     #[test]
     fn test_contract_id_display() {
-        let contract = ContractId::new("USDT".to_string());
+        let contract = ClobTokenId::new("USDT".to_string());
         assert_eq!(contract.to_string(), "USDT");
     }
 

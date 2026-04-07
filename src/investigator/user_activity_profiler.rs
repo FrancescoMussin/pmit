@@ -4,7 +4,7 @@ use crate::polymarket::Trade;
 use crate::investigator::MarketDistributions;
 use crate::investigator::InvestigationRequest;
 use lru::LruCache;
-use std::collections::HashMap;
+use std::collections::HashSet;
 use tokio::sync::mpsc::UnboundedSender;
 
 /// Struct for profiling user activity related to routed trades. This profiler focuses on fetching
@@ -20,7 +20,7 @@ impl UserActivityProfiler {
     pub fn profile_batch(
         &self,
         trades: Vec<Trade>,
-        token_map: &HashMap<String, String>,
+        monitored_tokens: &HashSet<String>,
         market_distributions: &mut MarketDistributions,
         recent_users: &mut LruCache<WalletAddress, ()>,
         tx: &UnboundedSender<InvestigationRequest>,
@@ -28,9 +28,9 @@ impl UserActivityProfiler {
     ) {
         // iterate over all trades
         for trade in trades {
-            // check if the trade's token ID corresponds to any monitored condition
-            if let Some(condition_id) = token_map.get(trade.asset.as_str()) {
-                let p_value = market_distributions.score_trade(condition_id, &trade).unwrap_or(1.0);
+            // check if the trade's token ID corresponds to any monitored token
+            if monitored_tokens.contains(trade.asset.as_str()) {
+                let p_value = market_distributions.score_trade(trade.asset.as_str(), &trade).unwrap_or(1.0);
                 
                 // we profile the trade.
                 self.profile_trade(

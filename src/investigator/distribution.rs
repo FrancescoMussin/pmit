@@ -14,34 +14,34 @@ impl MarketDistributions {
         }
     }
 
-    pub fn setup_market(&mut self, condition_id: String, alpha: f64) {
-        self.distributions.insert(condition_id.clone(), SingleMarketDistribution::new(condition_id, alpha));
+    pub fn setup_token(&mut self, clob_token_id: String, alpha: f64) {
+        self.distributions.insert(clob_token_id.clone(), SingleMarketDistribution::new(clob_token_id, alpha));
     }
 
-    pub fn insert_historical_trade(&mut self, condition_id: &str, trade: &Trade) {
-        if let Some(dist) = self.distributions.get_mut(condition_id) {
+    pub fn insert_historical_trade(&mut self, clob_token_id: &str, trade: &Trade) {
+        if let Some(dist) = self.distributions.get_mut(clob_token_id) {
             dist.insert_historical_trade(trade);
         }
     }
 
-    pub fn score_trade(&mut self, condition_id: &str, trade: &Trade) -> Option<f64> {
-        self.distributions.get_mut(condition_id).map(|dist| dist.score_trade(trade))
+    pub fn score_trade(&mut self, clob_token_id: &str, trade: &Trade) -> Option<f64> {
+        self.distributions.get_mut(clob_token_id).map(|dist| dist.score_trade(trade))
     }
 }
 
 /// A struct that holds distributional data for a single market.
 /// This tracks the Exponentially Weighted Moving Average (EWMA) and Variance of trade values (USD).
 pub struct SingleMarketDistribution {
-    pub condition_id: String,
+    pub clob_token_id: String,
     pub alpha: f64, // Decay factor
     pub ewma_val_mean: Option<f64>,
     pub ewma_val_variance: f64,
 }
 
 impl SingleMarketDistribution {
-    pub fn new(condition_id: String, alpha: f64) -> Self {
+    pub fn new(clob_token_id: String, alpha: f64) -> Self {
         Self {
-            condition_id,
+            clob_token_id,
             alpha,
             ewma_val_mean: None,
             ewma_val_variance: 0.0,
